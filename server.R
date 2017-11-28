@@ -8,6 +8,7 @@ source('helpers.R')
 shinyServer(
   function(input, output, session) {
     
+    output$testnumber = renderText("Test 4")
     ##########################################################
     ########### PART I: LOGIN ################################
     ##########################################################
