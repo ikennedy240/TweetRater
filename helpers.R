@@ -2,6 +2,7 @@ library(httr)
 library(rdrop2)
 library(googlesheets)
 
+setwd('/srv/shiny-server/TweetRater')
 token <- readRDS("droptoken.rds")
 db_dir = 'tweetratings'
 suppressMessages(gs_auth(token = "googlesheets_token.rds", verbose = FALSE))
