@@ -8,7 +8,7 @@ source('helpers.R')
 shinyServer(
   function(input, output, session) {
     
-    output$testnumber = renderText("Test 4")
+    output$testnumber = renderText("No Update Tweet Count")
     ##########################################################
     ########### PART I: LOGIN ################################
     ##########################################################
@@ -65,15 +65,15 @@ shinyServer(
       # Increment the round by one
       
       # Call function formData() (see below) to record submitted response
-      #newLine <- isolate(formData())
+      newLine <- isolate(formData())
       
       # Write newLine into data frame df
-      #isolate({
-      #  values$df <- rbind(values$df, newLine)
-      #})
+      isolate({
+        values$df <- rbind(values$df, newLine)
+      })
       #save the data
-      #saveData(values$df)
-      #output$end_message = renderText(paste0('You rateed ', values$round-1, ' Tweets, Thank you ', input$user,'!'))
+      saveData(values$df)
+      output$end_message = renderText(paste0('You rateed ', values$round-1, ' Tweets, Thank you ', input$user,'!'))
       #update_tweet_count(input$user, values$round)
       # Say good-bye
       hide(id = "form")
