@@ -14,7 +14,7 @@ responsesDir <- file.path("responses")
 
 #loat tweet df 
   # from dropbox
-tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, row.names=1, colClasses = 'character')
+tweet_df = drop_read_csv(file.path(db_dir, "new_tweet_set.csv"), dtoken=token, row.names=1, colClasses = 'character')
   # from local file
 #tweet_df = read.csv("test_tweets.csv", row.names=1, colClasses = 'character')
 # Password to login for this session
