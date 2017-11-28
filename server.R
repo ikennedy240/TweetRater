@@ -8,7 +8,7 @@ source('helpers.R')
 shinyServer(
   function(input, output, session) {
     
-    output$testnumber = renderText("No Save Data")
+    output$testnumber = renderText("No Update Tweet Count")
     ##########################################################
     ########### PART I: LOGIN ################################
     ##########################################################
@@ -72,9 +72,9 @@ shinyServer(
         values$df <- rbind(values$df, newLine)
       })
       #save the data
-      #saveData(values$df)
+      saveData(values$df)
       output$end_message = renderText(paste0('You rateed ', values$round-1, ' Tweets, Thank you ', input$user,'!'))
-      update_tweet_count(input$user, values$round)
+      #update_tweet_count(input$user, values$round)
       # Say good-bye
       hide(id = "form")
       show(id = "end")
