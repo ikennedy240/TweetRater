@@ -11,7 +11,7 @@ shinyUI(fluidPage(
       
       sidebarPanel(
         h2("Login"),
-        h2(textOutput("testnumber")),
+        #h2(textOutput("testnumber")),
         p("Please use the user name and password from your invite email to login."),
         hidden(
           div(
@@ -36,7 +36,9 @@ shinyUI(fluidPage(
          h3("Instructions"),
          p("You will be shown a series of tweets. For each tweet, please rate the level of anti-black
            racism you feel is present in that tweet. The rating is meant to be based on your subjective
-           reading, not some objective standard. Then, record whether, based on your reading, the tweet
+           reading, not some objective standard. You should also consider the overall tone of the tweet and, if possible,
+           the context. If it was tweeted in reply to another tweet, that tweet will appear about the key tweet. 
+           Please rate the bottom tweet only, as in the example below. Then, record whether you think the tweet
            has any stereotypes about black people in it."),
          img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive"),
          br(),
@@ -56,7 +58,7 @@ shinyUI(fluidPage(
           p("Look at the tweet or tweet conversation. Use the sentiment rater to evaluate
             the sentiment the tweet presents."),
           radioButtons("rating",
-                       label = h3("Sentiment Rating towards black folks"),
+                       label = h3("Sentiment Rating towards black people"),
                        choices = likert,
                        selected = 0),
           radioButtons("stereotype",
