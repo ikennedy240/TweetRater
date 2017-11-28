@@ -18,7 +18,7 @@ tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, row
   # from local file
 #tweet_df = read.csv("test_tweets.csv", row.names=1, colClasses = 'character')
 # Password to login for this session
-passwords = gs_title("passwords")
+passwords = gs_title("Sign up for Ian's Tweet Rater (Responses)")
 session_users = gs_read(passwords)
 
 # Checking user and password agianst df of proper names
