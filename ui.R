@@ -39,10 +39,9 @@ shinyUI(fluidPage(
            reading, not some objective standard. You should also consider the overall tone of the tweet and, if possible,
            the context. If it was tweeted in reply to another tweet, that tweet will appear about the key tweet. 
            Please rate the bottom tweet only, as in the example below. Then, record whether you think the tweet
-           has any stereotypes about black people in it."),
-         img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive"),
-         br(),
-         actionButton("confirm", label = "Ok, I got it... let's start")
+           has any stereotypes about black people in it. Make sure you click 'Save Ratings and Exit' to record your responses."),
+         actionButton("confirm", label = "Ok, I got it... let's start"),
+         img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive")
          #add instructions vis tweet context
          )
     ),
@@ -56,7 +55,8 @@ shinyUI(fluidPage(
         
         sidebarPanel(
           p("Look at the tweet or tweet conversation. Use the sentiment rater to evaluate
-            the sentiment the tweet presents."),
+            the sentiment the tweet presents. If the tweet doesn't show up or look right, 
+            hit 'Save Ratings and Exit' and reload the rater."),
           radioButtons("rating",
                        label = h3("Sentiment Rating towards black people"),
                        choices = likert,
