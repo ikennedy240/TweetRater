@@ -11,7 +11,6 @@ shinyUI(fluidPage(
       
       sidebarPanel(
         h2("Login"),
-        h2('test'),
         p("Please use the user name and password from your invite email to login."),
         hidden(
           div(
