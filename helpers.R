@@ -2,7 +2,6 @@ library(httr)
 library(rdrop2)
 library(googlesheets)
 
-setwd('/srv/shiny-server/TweetRater')
 token <- readRDS("droptoken.rds")
 db_dir = 'tweetratings'
 suppressMessages(gs_auth(token = "googlesheets_token.rds", verbose = FALSE))
@@ -16,7 +15,7 @@ responsesDir <- file.path("responses")
   # from dropbox
 tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, row.names=1, colClasses = 'character')
   # from local file
-#tweet_df = read.csv("test_tweets.csv", row.names=1, colClasses = 'character')
+#tweet_df = read.csv("some_tweets.csv", row.names=1, colClasses = 'character')
 # Password to login for this session
 passwords = gs_title("Sign up for Ian's Tweet Rater (Responses)")
 session_users = gs_read(passwords)
