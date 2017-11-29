@@ -24,8 +24,8 @@ session_users = gs_read(passwords)
 # Checking user and password agianst df of proper names
 checkuser = function(user, password){
   
-  if(any(session_users$users==user)){
-    if(session_users$passwords[session_users$users==user]==password){
+  if(any(session_users$`Choose a username to use for the rater (case sensitive)`==user)){
+    if(session_users$`Choose a password to use for the rater (case sensitive)`[session_users$`Choose a username to use for the rater (case sensitive)`==user]==password){
       return(TRUE)
     }
     else{
