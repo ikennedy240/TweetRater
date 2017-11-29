@@ -72,8 +72,8 @@ shinyUI(fluidPage(
         
         mainPanel(
           h4(textOutput("round_info")),
-          uiOutput("tweet_html"),
-          p(textOutput("tweet_alt"))
+          uiOutput("tweet_html")
+          #p(textOutput("tweet_alt"))
         )
       )
     )

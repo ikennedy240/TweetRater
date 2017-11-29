@@ -53,7 +53,7 @@ shinyServer(
     values <- reactiveValues(round = 1)
     # Initialize Start Tweet
     output$tweet_html = renderText(grab_html(as.integer(start_tweet(input$user)+values$round)))
-    output$tweet_alt = renderText(tweet_df$text[as.integer(start_tweet(input$user)+values$round)])
+    #output$tweet_alt = renderText(tweet_df$text[as.integer(start_tweet(input$user)+values$round)])
     
     # df will carry the responses submitted by the user
     values$df <- NULL
