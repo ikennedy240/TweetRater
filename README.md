@@ -7,12 +7,12 @@ IMPORTANT: This app was designed to run on the shiny.io servers which have no lo
 
 Tweet Set Setup: If you're using dropbox the way I did, you'll need to make a 'tweetratings' directory in your dropbox home folder. That's where you'll save you set of tweets as 'test_tweets.csv'. That csv file needs to include the tweet id numbers (as character strings) and the usernames with column names 'id' and 'screenName' respectively. 'tweeetratings' will need subdirectories like this:
 
-├── tweetratings
-│   ├── test_tweets.csv
-│   ├── responses
-│   ├── responsearchive
-│   ├── trash
-│   └── tweetarchive
+├── tweetratings   
+│   ├── test_tweets.csv  
+│   ├── responses  
+│   ├── responsearchive  
+│   ├── trash  
+│   └── tweetarchive  
 
 User info setup: I used a google form to gather some user information and let users set their own passwords. The form-generated sheet has annoying titles based on the questions I asked to gather that information. You'll need to adjust to find the columns you use.
 
