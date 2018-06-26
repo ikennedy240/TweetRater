@@ -176,12 +176,45 @@ $(document).ready(function () {
 
 
 <!-- rnb-text-begin -->
-<div id="download" class="section level1">
-<h1>Download</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="download-hatebase-terms" class="section level1">
+<h1>Download hatebase terms</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua2V5IDwtIHJlYWRfZmlsZSgncmVzb3VyY2VzL2hhdGViYXNla2V5LnR4dCcpXG50ZXJtcyA8LSBkYXRhX2ZyYW1lKHRlcm1zPWNoYXJhY3RlcigpLCBtZWFuaW5ncz1jaGFyYWN0ZXIoKSlcbmZvcihwYWdlIGluIDE6NSl7XG4gIHJlcXVlc3RfdXJsID0gcGFzdGUwKCdodHRwczovL2FwaS5oYXRlYmFzZS5vcmcvdjMtMC8nLCBrZXksICcvdm9jYWJ1bGFyeS94bWwvYWJvdXRfZXRobmljaXR5PTElN2NsYW5ndWFnZT1lbmclN2NwYWdlPScscGFnZSlcbiAgcmVxdWVzdCA8LSBHRVQocmVxdWVzdF91cmwpXG4gIGNvbnRlbnQgPC0gcmVhZF94bWwoY29udGVudChyZXF1ZXN0LCB0eXBlPSd0ZXh0JykpXG4gIHRtcCA8LSBkYXRhX2ZyYW1lKHRlcm1zID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vdm9jYWJ1bGFyeScpKSksXG4gICAgICAgICAgIG1lYW5pbmdzID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vbWVhbmluZycpKSkpXG4gIHRlcm1zIDwtIGJpbmRfcm93cyh0ZXJtcywgdG1wW3N0cl9kZXRlY3QodG1wJG1lYW5pbmdzLCAnYmxhY2snKSxdKVxufVxuYGBgIn0= -->
+<pre class="r"><code>key &lt;- read_file('resources/hatebasekey.txt')
+terms &lt;- data_frame(terms=character(), meanings=character())
+for(page in 1:5){
+  request_url = paste0('https://api.hatebase.org/v3-0/', key, '/vocabulary/xml/about_ethnicity=1%7clanguage=eng%7cpage=',page)
+  request &lt;- GET(request_url)
+  content &lt;- read_xml(content(request, type='text'))
+  tmp &lt;- data_frame(terms = unlist(as_list(xml_find_all(content, xpath = '//vocabulary'))),
+           meanings = unlist(as_list(xml_find_all(content, xpath = '//meaning'))))
+  terms &lt;- bind_rows(terms, tmp[str_detect(tmp$meanings, 'black'),])
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTm8gZW5jb2Rpbmcgc3VwcGxpZWQ6IGRlZmF1bHRpbmcgdG8gVVRGLTguXG5ObyBlbmNvZGluZyBzdXBwbGllZDogZGVmYXVsdGluZyB0byBVVEYtOC5cbk5vIGVuY29kaW5nIHN1cHBsaWVkOiBkZWZhdWx0aW5nIHRvIFVURi04LlxuTm8gZW5jb2Rpbmcgc3VwcGxpZWQ6IGRlZmF1bHRpbmcgdG8gVVRGLTguXG5ObyBlbmNvZGluZyBzdXBwbGllZDogZGVmYXVsdGluZyB0byBVVEYtOC5cbiJ9 -->
+<pre><code>No encoding supplied: defaulting to UTF-8.
+No encoding supplied: defaulting to UTF-8.
+No encoding supplied: defaulting to UTF-8.
+No encoding supplied: defaulting to UTF-8.
+No encoding supplied: defaulting to UTF-8.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="filter-to-those-about-black-folks" class="section level1">
+<h1>Filter to those about black folks</h1>
+</div>
+<div id="grab-tweets-that-match-those-terms" class="section level1">
+<h1>Grab tweets that match those terms</h1>
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiR2F0aGVyIFJlbGV2YW50IFR3ZWV0cyB1c2luZyB0aGUgSGF0ZWJhc2Ugc2V0IG9mIHdvcmRzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgojRG93bmxvYWQg</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiR2F0aGVyIFJlbGV2YW50IFR3ZWV0cyB1c2luZyB0aGUgSGF0ZWJhc2Ugc2V0IG9mIHdvcmRzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciBsb2FkIGxpYnJhcmllc30KbGlicmFyeShodHRyKQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeSh4bWwyKQpgYGAKCgojIERvd25sb2FkIGhhdGViYXNlIHRlcm1zCgpgYGB7cn0Ka2V5IDwtIHJlYWRfZmlsZSgncmVzb3VyY2VzL2hhdGViYXNla2V5LnR4dCcpICMgcmVhZCBzdG9yZWQgYXBpIGtleQp0ZXJtcyA8LSBkYXRhX2ZyYW1lKHRlcm1zPWNoYXJhY3RlcigpLCBtZWFuaW5ncz1jaGFyYWN0ZXIoKSkgIyBlbXB0eSBkZiBmb3IgdGVybXMKZm9yKHBhZ2UgaW4gMTo1KXsgIyBsb29wIHRocm91Z2ggbnVtYmVyIG9mIHBhZ2VzCiAgcmVxdWVzdF91cmwgPSBwYXN0ZTAoJ2h0dHBzOi8vYXBpLmhhdGViYXNlLm9yZy92My0wLycsIGtleSwgJy92b2NhYnVsYXJ5L3htbC9hYm91dF9ldGhuaWNpdHk9MSU3Y2xhbmd1YWdlPWVuZyU3Y3BhZ2U9JyxwYWdlKSAjIG1ha2UgYXBpIGNhbGwgdXJsCiAgcmVxdWVzdCA8LSBHRVQocmVxdWVzdF91cmwpICMgR0VUIGFwaSByZXN1bHRzCiAgY29udGVudCA8LSByZWFkX3htbChjb250ZW50KHJlcXVlc3QsIHR5cGU9J3RleHQnKSkgIyBwcm9jZXNzIHhtbAogIHRtcCA8LSBkYXRhX2ZyYW1lKHRlcm1zID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vdm9jYWJ1bGFyeScpKSksICMgcHVsbCBvdXQgdGhlIHJlc3VsdGluZyB0ZXJtcwogICAgICAgICAgIG1lYW5pbmdzID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vbWVhbmluZycpKSkpICMgYW5kIHRoZWlyIG1lYW5pbmdzCiAgdGVybXMgPC0gYmluZF9yb3dzKHRlcm1zLCB0bXBbc3RyX2RldGVjdCh0bXAkbWVhbmluZ3MsICdibGFjaycpLF0pICMgb25seSBrZWVwIHRlcm1zIHdoaWNoIG1lbnRpb24gJ2JsYWNrJyBpbiB0aGVpciBtZWFuaW5nIGZpZWxkCn0KCmBgYAoKCgojIEZpbHRlciB0byB0aG9zZSBhYm91dCBibGFjayBmb2xrcwoKIyBHcmFiIHR3ZWV0cyB0aGF0IG1hdGNoIHRob3NlIHRlcm1z</div>
 
 
 

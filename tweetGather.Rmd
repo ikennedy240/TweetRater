@@ -3,4 +3,31 @@ title: "Gather Relevant Tweets using the Hatebase set of words"
 output: html_notebook
 ---
 
-#Download 
+```{r load libraries}
+library(httr)
+library(tidyverse)
+library(xml2)
+```
+
+
+# Download hatebase terms
+
+```{r}
+key <- read_file('resources/hatebasekey.txt') # read stored api key
+terms <- data_frame(terms=character(), meanings=character()) # empty df for terms
+for(page in 1:5){ # loop through number of pages
+  request_url = paste0('https://api.hatebase.org/v3-0/', key, '/vocabulary/xml/about_ethnicity=1%7clanguage=eng%7cpage=',page) # make api call url
+  request <- GET(request_url) # GET api results
+  content <- read_xml(content(request, type='text')) # process xml
+  tmp <- data_frame(terms = unlist(as_list(xml_find_all(content, xpath = '//vocabulary'))), # pull out the resulting terms
+           meanings = unlist(as_list(xml_find_all(content, xpath = '//meaning')))) # and their meanings
+  terms <- bind_rows(terms, tmp[str_detect(tmp$meanings, 'black'),]) # only keep terms which mention 'black' in their meaning field
+}
+
+```
+
+
+
+# Filter to those about black folks
+
+# Grab tweets that match those terms
