@@ -6,6 +6,7 @@
 *.Rhistory
 *.Rdata
 *.Rda
+*.html
 *.Rds
 *.rda
 *.rdata

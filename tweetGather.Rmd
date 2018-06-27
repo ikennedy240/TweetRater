@@ -7,11 +7,11 @@ output: html_notebook
 library(httr)
 library(tidyverse)
 library(xml2)
+library(rtweet)
 ```
 
 
-# Download hatebase terms
-
+# Download hatebase terms and filter to those who's listing meaning contains the word 'black'
 ```{r}
 key <- read_file('resources/hatebasekey.txt') # read stored api key
 terms <- data_frame(terms=character(), meanings=character()) # empty df for terms
@@ -26,8 +26,32 @@ for(page in 1:5){ # loop through number of pages
 
 ```
 
-
-
-# Filter to those about black folks
+Add Rene's words to make a full list of terms
+```{r}
+# terms from Flores 2017
+flores_terms <- c('African-American', 'blacks', 'AfricanAmerican', 'black people', 'black ppl', 'black guy', 'black girl', 'black dude', 'black men', 'black female', 'black man', 'black male', 'black women')
+# joined with ours for a full list
+term_list <- append(terms$terms, flores_terms)
+```
 
 # Grab tweets that match those terms
+```{r}
+# grab n tweets matching each of the terms in our list
+n = 200
+tweet_sample <- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = "en")
+# make a search term column and remove duplicate texts
+tweet_sample <- tweet_sample %>% mutate(search_term = str_replace(rownames(tweet_sample), '\\..+','')) %>% distinct(text, .keep_all = TRUE)
+write_as_csv(tweet_sample, 'data/tweet_sample6_26.csv', prepend_ids = FALSE) # save sample as csv
+
+#make a random subset of 100 tweets
+
+sub_sample_100 <- tweet_sample %>% sample_n(100)
+sub_sample_100['index'] <- rownames(sub_sample_100)
+write_as_csv(sub_sample_100, 'data/sub_sample_100.csv', prepend_ids = FALSE) # save sample as csv
+#### load sample from csv
+# tweet_sample <- read_csv('data/tweet_sample6_26.csv', 
+#          col_types = cols(user_id = col_character(), 
+#                           status_id = col_character())) #make sure to maintain user_id and status_id as character strings!
+```
+
+

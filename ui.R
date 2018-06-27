@@ -23,9 +23,9 @@ shinyUI(fluidPage(
       ),
       
       mainPanel(
-        textInput("user", "User", ""),
-        textInput("password", "Password", ""),
-        actionButton("login", "Login", class = "btn-primary")
+        textInput("user", "Name", ""),
+        #textInput("password", "Password", ""),
+        actionButton("login", "Begin", class = "btn-primary")
       )
     )
   ),
@@ -71,8 +71,9 @@ shinyUI(fluidPage(
         
         mainPanel(
           h4(textOutput("round_info")),
-          uiOutput("tweet_html")
-          #p(textOutput("tweet_alt"))
+          uiOutput("tweet_html", inline = TRUE)
+          #p(textOutput("tweet_html"))
+          #HTML(uiOutput("tweet_html"))
         )
       )
     )

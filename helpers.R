@@ -2,18 +2,18 @@ library(httr)
 library(rdrop2)
 library(googlesheets)
 
-token <- readRDS("droptoken.rds")
+token <- readRDS("resources/droptoken.rds")
 db_dir = 'tweetratings'
-suppressMessages(gs_auth(token = "googlesheets_token.rds", verbose = FALSE))
+suppressMessages(gs_auth(token = "resources/googlesheets_token.rds", verbose = FALSE))
 # which fields get saved
 fieldsAll <- c("user", "rating", "stereotype")
 
-# self-explanatory
+# dropbox responses format self-explanatory
 responsesDir <- file.path("responses")
 
-#loat tweet df 
+
   # from dropbox
-tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, row.names=1, colClasses = 'character')
+tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, colClasses = 'character')
   # from local file
 #tweet_df = read.csv("some_tweets.csv", row.names=1, colClasses = 'character')
 # Password to login for this session
@@ -22,7 +22,7 @@ session_users = gs_read(passwords)
 
 # Checking user and password agianst df of proper names
 checkuser = function(user, password){
-  
+  return(TRUE)
   if(any(session_users$'Choose a username to use for the rater (case sensitive)'==user)){
     if(session_users$'Choose a password to use for the rater (case sensitive)'[session_users$'Choose a username to use for the rater (case sensitive)'==user]==password){
       return(TRUE)
@@ -107,13 +107,13 @@ epochTime <- function() {
   as.integer(Sys.time())
 }
 
-
+round = 10
 
 grab_html <- function(round){
-  tweet_info = GET(paste("https://publish.twitter.com/oembed?url=https://twitter.com/",tweet_df$screenName[round],
-                         "/status/",tweet_df$id[round],"?omit_script=TRUE", sep=''))
+  tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=",tweet_df$status_url[round],
+                         "?omit_script=TRUE"))
+  #tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=https://twitter.com/Twiststyl17/status/1011740658464448513"))
   tweet_html = content(tweet_info, "parsed")$html
-  
   return(tweet_html)
 }
 tweet_html = "<blockquote class=\"twitter-tweet\"><p lang=\"en\" dir=\"ltr\">From the sets of <a href=\"https://twitter.com/hashtag/PSPK25?src=hash&amp;ref_src=twsrc%5Etfw\">#PSPK25</a> <a href=\"https://twitter.com/hashtag/Trivikram?src=hash&amp;ref_src=twsrc%5Etfw\">#Trivikram</a> <a href=\"https://twitter.com/hashtag/PawanKalyan?src=hash&amp;ref_src=twsrc%5Etfw\">#PawanKalyan</a> <a href=\"https://twitter.com/KeerthyOfficial?ref_src=twsrc%5Etfw\">@KeerthyOfficial</a> <a href=\"https://t.co/SxDzt745WZ\">pic.twitter.com/SxDzt745WZ</a></p>&mdash; Trivikram Dialogues (@TrivikramFans) <a href=\"https://twitter.com/TrivikramFans/status/928967148734636032?ref_src=twsrc%5Etfw\">November 10, 2017</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n"
