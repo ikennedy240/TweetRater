@@ -64,7 +64,7 @@ shinyUI(fluidPage(
                        choices = likert,
                        selected = 0),
           textInput("notes",
-                    label = h3("Any notes about your rathing here?"),
+                    label = h3("Any notes about your rating here?"),
                     placeholder = "notes"
                     ),
           actionButton("submit", "Submit", class = "btn-primary"),

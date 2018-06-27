@@ -178,9 +178,11 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShydHdlZXQpXG5cbmBgYCJ9 -->
-<pre class="r"><code>library(rtweet)
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShodHRyKVxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KHhtbDIpXG5saWJyYXJ5KHJ0d2VldClcbmBgYCJ9 -->
+<pre class="r"><code>library(httr)
+library(tidyverse)
+library(xml2)
+library(rtweet)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYcnR3ZWV04oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6cHVycnLigJk6XG5cbiAgICBmbGF0dGVuXG4ifQ== -->
 <pre><code>
@@ -196,16 +198,16 @@ The following object is masked from ‘package:purrr’:
 <h1>Download hatebase terms and filter to those who’s listing meaning contains the word ‘black’</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua2V5IDwtIHJlYWRfZmlsZSgncmVzb3VyY2VzL2hhdGViYXNla2V5LnR4dCcpXG50ZXJtcyA8LSBkYXRhX2ZyYW1lKHRlcm1zPWNoYXJhY3RlcigpLCBtZWFuaW5ncz1jaGFyYWN0ZXIoKSlcbmZvcihwYWdlIGluIDE6NSl7XG4gIHJlcXVlc3RfdXJsID0gcGFzdGUwKCdodHRwczovL2FwaS5oYXRlYmFzZS5vcmcvdjMtMC8nLCBrZXksICcvdm9jYWJ1bGFyeS94bWwvYWJvdXRfZXRobmljaXR5PTElN2NsYW5ndWFnZT1lbmclN2NwYWdlPScscGFnZSlcbiAgcmVxdWVzdCA8LSBHRVQocmVxdWVzdF91cmwpXG4gIGNvbnRlbnQgPC0gcmVhZF94bWwoY29udGVudChyZXF1ZXN0LCB0eXBlPSd0ZXh0JykpXG4gIHRtcCA8LSBkYXRhX2ZyYW1lKHRlcm1zID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vdm9jYWJ1bGFyeScpKSksXG4gICAgICAgICAgIG1lYW5pbmdzID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vbWVhbmluZycpKSkpXG4gIHRlcm1zIDwtIGJpbmRfcm93cyh0ZXJtcywgdG1wW3N0cl9kZXRlY3QodG1wJG1lYW5pbmdzLCAnYmxhY2snKSxdKVxufVxuYGBgIn0= -->
-<pre class="r"><code>key &lt;- read_file('resources/hatebasekey.txt')
-terms &lt;- data_frame(terms=character(), meanings=character())
-for(page in 1:5){
-  request_url = paste0('https://api.hatebase.org/v3-0/', key, '/vocabulary/xml/about_ethnicity=1%7clanguage=eng%7cpage=',page)
-  request &lt;- GET(request_url)
-  content &lt;- read_xml(content(request, type='text'))
-  tmp &lt;- data_frame(terms = unlist(as_list(xml_find_all(content, xpath = '//vocabulary'))),
-           meanings = unlist(as_list(xml_find_all(content, xpath = '//meaning'))))
-  terms &lt;- bind_rows(terms, tmp[str_detect(tmp$meanings, 'black'),])
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua2V5IDwtIHJlYWRfZmlsZSgncmVzb3VyY2VzL2hhdGViYXNla2V5LnR4dCcpICMgcmVhZCBzdG9yZWQgYXBpIGtleVxudGVybXMgPC0gZGF0YV9mcmFtZSh0ZXJtcz1jaGFyYWN0ZXIoKSwgbWVhbmluZ3M9Y2hhcmFjdGVyKCkpICMgZW1wdHkgZGYgZm9yIHRlcm1zXG5mb3IocGFnZSBpbiAxOjUpeyAjIGxvb3AgdGhyb3VnaCBudW1iZXIgb2YgcGFnZXNcbiAgcmVxdWVzdF91cmwgPSBwYXN0ZTAoJ2h0dHBzOi8vYXBpLmhhdGViYXNlLm9yZy92My0wLycsIGtleSwgJy92b2NhYnVsYXJ5L3htbC9hYm91dF9ldGhuaWNpdHk9MSU3Y2xhbmd1YWdlPWVuZyU3Y3BhZ2U9JyxwYWdlKSAjIG1ha2UgYXBpIGNhbGwgdXJsXG4gIHJlcXVlc3QgPC0gR0VUKHJlcXVlc3RfdXJsKSAjIEdFVCBhcGkgcmVzdWx0c1xuICBjb250ZW50IDwtIHJlYWRfeG1sKGNvbnRlbnQocmVxdWVzdCwgdHlwZT0ndGV4dCcpKSAjIHByb2Nlc3MgeG1sXG4gIHRtcCA8LSBkYXRhX2ZyYW1lKHRlcm1zID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vdm9jYWJ1bGFyeScpKSksICMgcHVsbCBvdXQgdGhlIHJlc3VsdGluZyB0ZXJtc1xuICAgICAgICAgICBtZWFuaW5ncyA9IHVubGlzdChhc19saXN0KHhtbF9maW5kX2FsbChjb250ZW50LCB4cGF0aCA9ICcvL21lYW5pbmcnKSkpKSAjIGFuZCB0aGVpciBtZWFuaW5nc1xuICB0ZXJtcyA8LSBiaW5kX3Jvd3ModGVybXMsIHRtcFtzdHJfZGV0ZWN0KHRtcCRtZWFuaW5ncywgJ2JsYWNrJyksXSkgIyBvbmx5IGtlZXAgdGVybXMgd2hpY2ggbWVudGlvbiAnYmxhY2snIGluIHRoZWlyIG1lYW5pbmcgZmllbGRcbn1cbmBgYCJ9 -->
+<pre class="r"><code>key &lt;- read_file('resources/hatebasekey.txt') # read stored api key
+terms &lt;- data_frame(terms=character(), meanings=character()) # empty df for terms
+for(page in 1:5){ # loop through number of pages
+  request_url = paste0('https://api.hatebase.org/v3-0/', key, '/vocabulary/xml/about_ethnicity=1%7clanguage=eng%7cpage=',page) # make api call url
+  request &lt;- GET(request_url) # GET api results
+  content &lt;- read_xml(content(request, type='text')) # process xml
+  tmp &lt;- data_frame(terms = unlist(as_list(xml_find_all(content, xpath = '//vocabulary'))), # pull out the resulting terms
+           meanings = unlist(as_list(xml_find_all(content, xpath = '//meaning')))) # and their meanings
+  terms &lt;- bind_rows(terms, tmp[str_detect(tmp$meanings, 'black'),]) # only keep terms which mention 'black' in their meaning field
 }</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiTm8gZW5jb2Rpbmcgc3VwcGxpZWQ6IGRlZmF1bHRpbmcgdG8gVVRGLTguXG5ObyBlbmNvZGluZyBzdXBwbGllZDogZGVmYXVsdGluZyB0byBVVEYtOC5cbk5vIGVuY29kaW5nIHN1cHBsaWVkOiBkZWZhdWx0aW5nIHRvIFVURi04LlxuTm8gZW5jb2Rpbmcgc3VwcGxpZWQ6IGRlZmF1bHRpbmcgdG8gVVRGLTguXG5ObyBlbmNvZGluZyBzdXBwbGllZDogZGVmYXVsdGluZyB0byBVVEYtOC5cbiJ9 -->
@@ -220,60 +222,25 @@ No encoding supplied: defaulting to UTF-8.</code></pre>
 <p>Add Rene’s words to make a full list of terms</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYXBwZW5kKHRlcm1zJHRlcm1zLCByZW5lc190ZXJtcylcblxuYGBgIn0= -->
-<pre class="r"><code>append(terms$terms, renes_terms)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3R1cm5zIG91dCB0aG9zZSB0ZXJtcyBpbmNsdWRlIGxvdHMgb2YgYW1iaWd1b3VzIHRlcm1zIHNvIEkgZWRpdGVkIHRoZW0gYnkgaGFuZFxucmVhZF9saW5lcygncmVzb3VyY2VzL2VkaXRlZF90ZXJtX2xpc3QnKVxuXG5gYGAifQ== -->
+<pre class="r"><code>#turns out those terms include lots of ambiguous terms so I edited them by hand
+read_lines('resources/edited_term_list')
 </code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiICBbMV0gXCJBZnJvLVNheG9uXCIgICAgICAgXCJhbGxpZ2F0b3IgYmFpdFwiICAgXCJBbm5cIiAgICAgICAgICAgICBcbiAgWzRdIFwiYXBlXCIgICAgICAgICAgICAgIFwiQXVudCBKYW5lXCIgICAgICAgIFwiQXVudCBKZW1pbWFcIiAgICAgXG4gIFs3XSBcIkF1bnQgTWFyeVwiICAgICAgICBcIkF1bnQgU2FsbHlcIiAgICAgICBcImJsYWNrIEJhcmJpZVwiICAgIFxuIFsxMF0gXCJibHVlIGd1bVwiICAgICAgICAgXCJib29cIiAgICAgICAgICAgICAgXCJicm93bmllXCIgICAgICAgICBcbiBbMTNdIFwiYnVja1wiICAgICAgICAgICAgIFwiQnVja3doZWF0XCIgICAgICAgIFwiYnVmZmllXCIgICAgICAgICAgXG4gWzE2XSBcImJ1bWJsZWJlZVwiICAgICAgICBcImJ1cnJoZWFkXCIgICAgICAgICBcImNoaWdnZXJcIiAgICAgICAgIFxuIFsxOV0gXCJjaGluaWdcIiAgICAgICAgICAgXCJjb2NvYVwiICAgICAgICAgICAgXCJDb2NvYSBQdWZmXCIgICAgICBcbiBbMjJdIFwiY29jb251dFwiICAgICAgICAgIFwiY29sb3JlZFwiICAgICAgICAgIFwiY29sb3VyZWRcIiAgICAgICAgXG4gWzI1XSBcImNvb25cIiAgICAgICAgICAgICBcImNyb3dcIiAgICAgICAgICAgICBcIkN1c2hpXCIgICAgICAgICAgIFxuIFsyOF0gXCJDdXNoaXRlXCIgICAgICAgICAgXCJkYXJrZXlcIiAgICAgICAgICAgXCJkYXJraWVcIiAgICAgICAgICBcbiBbMzFdIFwiZGFya3lcIiAgICAgICAgICAgIFwiZGluZ2VcIiAgICAgICAgICAgIFwiZWdncGxhbnRcIiAgICAgICAgXG4gWzM0XSBcImVpZ2h0IGJhbGxcIiAgICAgICBcImZvZyBuaWdnZXJcIiAgICAgICBcImZ1enp5XCIgICAgICAgICAgIFxuIFszN10gXCJnYWJsZVwiICAgICAgICAgICAgXCJnYXRvciBiYWl0XCIgICAgICAgXCJnaGV0dG9cIiAgICAgICAgICBcbiBbNDBdIFwiZ2hldHRvIGhhbXN0ZXJcIiAgIFwiZ29sbGl3b2dcIiAgICAgICAgIFwiZ3JvaWRcIiAgICAgICAgICAgXG4gWzQzXSBcImhlYnJvXCIgICAgICAgICAgICBcImhpZ2dlclwiICAgICAgICAgICBcImhvdXNlIG5pZ2dlclwiICAgIFxuIFs0Nl0gXCJpY2UgbmlnZ2VyXCIgICAgICAgXCJqaWdcIiAgICAgICAgICAgICAgXCJqaWdhYm9vXCIgICAgICAgICBcbiBbNDldIFwiamlnYXJvb25pXCIgICAgICAgIFwiamlnZ1wiICAgICAgICAgICAgIFwiamlnZ2FcIiAgICAgICAgICAgXG4gWzUyXSBcImppZ2dhYm9cIiAgICAgICAgICBcImppZ2dhYm9vXCIgICAgICAgICBcImppZ2dlclwiICAgICAgICAgIFxuIFs1NV0gXCJqaWpqaWJvb1wiICAgICAgICAgXCJKaW0gRmlzaFwiICAgICAgICAgXCJqdW5nbGUgYnVubnlcIiAgICBcbiBbNThdIFwiSnVuaW9yIE1pbnRcIiAgICAgIFwiS3VzaGlcIiAgICAgICAgICAgIFwiS3VzaGl0ZVwiICAgICAgICAgXG4gWzYxXSBcImxhd24gam9ja2V5XCIgICAgICBcIm1vbmtleVwiICAgICAgICAgICBcIm1vb24gY3JpY2tldFwiICAgIFxuIFs2NF0gXCJNb29yXCIgICAgICAgICAgICAgXCJtb3NzaGVhZFwiICAgICAgICAgXCJtb3VsaWVcIiAgICAgICAgICBcbiBbNjddIFwibW91bGlnbm9uXCIgICAgICAgIFwibW91bGlueWFuXCIgICAgICAgIFwibXVkIGR1Y2tcIiAgICAgICAgXG4gWzcwXSBcIm11ZCBwZXJzb25cIiAgICAgICBcIm11ZCBzaGFya1wiICAgICAgICBcIm11bGF0b1wiICAgICAgICAgIFxuIFs3M10gXCJtdWxpZ25hblwiICAgICAgICAgXCJtdW50XCIgICAgICAgICAgICAgXCJtdW50ZXJcIiAgICAgICAgICBcbiBbNzZdIFwibmljY2FcIiAgICAgICAgICAgIFwibmlnXCIgICAgICAgICAgICAgIFwibmlnIG5vZ1wiICAgICAgICAgXG4gWzc5XSBcIm5pZ2FyXCIgICAgICAgICAgICBcIm5pZ2VyXCIgICAgICAgICAgICBcIm5pZ2V0dGVcIiAgICAgICAgIFxuIFs4Ml0gXCJuaWdnYVwiICAgICAgICAgICAgXCJuaWdnYWhcIiAgICAgICAgICAgXCJuaWdnYXJcIiAgICAgICAgICBcbiBbODVdIFwibmlnZ2VyXCIgICAgICAgICAgIFwibmlnZ2xldFwiICAgICAgICAgIFwibmlnZ29yXCIgICAgICAgICAgXG4gWzg4XSBcIm5pZ2dyZXNzXCIgICAgICAgICBcIm5pZ2d1aFwiICAgICAgICAgICBcIm5pZ2d1clwiICAgICAgICAgIFxuIFs5MV0gXCJuaWdsZXRcIiAgICAgICAgICAgXCJuaWdvclwiICAgICAgICAgICAgXCJuaWdyYVwiICAgICAgICAgICBcbiBbOTRdIFwibmlncmVcIiAgICAgICAgICAgIFwiT3Jlb1wiICAgICAgICAgICAgIFwicG9wb2xvXCIgICAgICAgICAgXG4gWzk3XSBcInBvcmNoIG1vbmtleVwiICAgICBcInBvd2RlcmJ1cm5cIiAgICAgICBcInByb3BlcnR5XCIgICAgICAgIFxuWzEwMF0gXCJxdWFzaGllXCIgICAgICAgICAgXCJyZWQgYm9uZVwiICAgICAgICAgXCJzYW1ib1wiICAgICAgICAgICBcblsxMDNdIFwic2hhZGVcIiAgICAgICAgICAgIFwic2hpbmVcIiAgICAgICAgICAgIFwic2hpbmVyXCIgICAgICAgICAgXG5bMTA2XSBcInNoaXQgaGVlbFwiICAgICAgICBcInNtb2tlIGp1bXBlclwiICAgICBcInNtb2tlZCBJcmlzaFwiICAgIFxuWzEwOV0gXCJzbW9rZWQgSXJpc2htYW5cIiAgXCJzbm93Zmxha2VcIiAgICAgICAgXCJzb290eVwiICAgICAgICAgICBcblsxMTJdIFwic3BhZGVcIiAgICAgICAgICAgIFwic3BpY2UgbmlnZ2VyXCIgICAgIFwic3BpY2thYm9vXCIgICAgICAgXG5bMTE1XSBcInNwaWdnZXJcIiAgICAgICAgICBcInNwb29rXCIgICAgICAgICAgICBcInN0b3ZlcGlwZVwiICAgICAgIFxuWzExOF0gXCJzdWIgaHVtYW5cIiAgICAgICAgXCJzdW50YW5cIiAgICAgICAgICAgXCJ0YXIgYmFieVwiICAgICAgICBcblsxMjFdIFwidGVhcG90XCIgICAgICAgICAgIFwidGhpY2tsaXBzXCIgICAgICAgIFwiVW5jbGUgVG9tXCIgICAgICAgXG5bMTI0XSBcIlZlbGNybyBoZWFkXCIgICAgICBcIndoaWdnZXJcIiAgICAgICAgICBcIndoaXRlIGNob2NvbGF0ZVwiIFxuWzEyN10gXCJ3aGl0ZSBuaWdnZXJcIiAgICAgXCJ3aWdnYVwiICAgICAgICAgICAgXCJ3aWdnZXJcIiAgICAgICAgICBcblsxMzBdIFwid2lnZ2VyZXR0ZVwiICAgICAgIFwieWFyZGllXCIgICAgICAgICAgIFwieWVsbG93IGJvbmVcIiAgICAgXG5bMTMzXSBcInplYnJhXCIgICAgICAgICAgICBcInppZ2Fib1wiICAgICAgICAgICBcIkFmcmljYW4tQW1lcmljYW5cIlxuWzEzNl0gXCJibGFja3NcIiAgICAgICAgICAgXCJBZnJpY2FuQW1lcmljYW5cIiAgXCJibGFjayBwZW9wbGVcIiAgICBcblsxMzldIFwiYmxhY2sgcHBsXCIgICAgICAgIFwiYmxhY2sgZ3V5XCIgICAgICAgIFwiYmxhY2sgZ2lybFwiICAgICAgXG5bMTQyXSBcImJsYWNrIGR1ZGVcIiAgICAgICBcImJsYWNrIG1lblwiICAgICAgICBcImJsYWNrIGZlbWFsZVwiICAgIFxuWzE0NV0gXCJibGFjayBtYW5cIiAgICAgICAgXCJibGFjayBtYWxlXCIgICAgICAgXCJibGFjayB3b21lblwiICAgICBcbiJ9 -->
-<pre><code>  [1] &quot;Afro-Saxon&quot;       &quot;alligator bait&quot;   &quot;Ann&quot;             
-  [4] &quot;ape&quot;              &quot;Aunt Jane&quot;        &quot;Aunt Jemima&quot;     
-  [7] &quot;Aunt Mary&quot;        &quot;Aunt Sally&quot;       &quot;black Barbie&quot;    
- [10] &quot;blue gum&quot;         &quot;boo&quot;              &quot;brownie&quot;         
- [13] &quot;buck&quot;             &quot;Buckwheat&quot;        &quot;buffie&quot;          
- [16] &quot;bumblebee&quot;        &quot;burrhead&quot;         &quot;chigger&quot;         
- [19] &quot;chinig&quot;           &quot;cocoa&quot;            &quot;Cocoa Puff&quot;      
- [22] &quot;coconut&quot;          &quot;colored&quot;          &quot;coloured&quot;        
- [25] &quot;coon&quot;             &quot;crow&quot;             &quot;Cushi&quot;           
- [28] &quot;Cushite&quot;          &quot;darkey&quot;           &quot;darkie&quot;          
- [31] &quot;darky&quot;            &quot;dinge&quot;            &quot;eggplant&quot;        
- [34] &quot;eight ball&quot;       &quot;fog nigger&quot;       &quot;fuzzy&quot;           
- [37] &quot;gable&quot;            &quot;gator bait&quot;       &quot;ghetto&quot;          
- [40] &quot;ghetto hamster&quot;   &quot;golliwog&quot;         &quot;groid&quot;           
- [43] &quot;hebro&quot;            &quot;higger&quot;           &quot;house nigger&quot;    
- [46] &quot;ice nigger&quot;       &quot;jig&quot;              &quot;jigaboo&quot;         
- [49] &quot;jigarooni&quot;        &quot;jigg&quot;             &quot;jigga&quot;           
- [52] &quot;jiggabo&quot;          &quot;jiggaboo&quot;         &quot;jigger&quot;          
- [55] &quot;jijjiboo&quot;         &quot;Jim Fish&quot;         &quot;jungle bunny&quot;    
- [58] &quot;Junior Mint&quot;      &quot;Kushi&quot;            &quot;Kushite&quot;         
- [61] &quot;lawn jockey&quot;      &quot;monkey&quot;           &quot;moon cricket&quot;    
- [64] &quot;Moor&quot;             &quot;mosshead&quot;         &quot;moulie&quot;          
- [67] &quot;moulignon&quot;        &quot;moulinyan&quot;        &quot;mud duck&quot;        
- [70] &quot;mud person&quot;       &quot;mud shark&quot;        &quot;mulato&quot;          
- [73] &quot;mulignan&quot;         &quot;munt&quot;             &quot;munter&quot;          
- [76] &quot;nicca&quot;            &quot;nig&quot;              &quot;nig nog&quot;         
- [79] &quot;nigar&quot;            &quot;niger&quot;            &quot;nigette&quot;         
- [82] &quot;nigga&quot;            &quot;niggah&quot;           &quot;niggar&quot;          
- [85] &quot;nigger&quot;           &quot;nigglet&quot;          &quot;niggor&quot;          
- [88] &quot;niggress&quot;         &quot;nigguh&quot;           &quot;niggur&quot;          
- [91] &quot;niglet&quot;           &quot;nigor&quot;            &quot;nigra&quot;           
- [94] &quot;nigre&quot;            &quot;Oreo&quot;             &quot;popolo&quot;          
- [97] &quot;porch monkey&quot;     &quot;powderburn&quot;       &quot;property&quot;        
-[100] &quot;quashie&quot;          &quot;red bone&quot;         &quot;sambo&quot;           
-[103] &quot;shade&quot;            &quot;shine&quot;            &quot;shiner&quot;          
-[106] &quot;shit heel&quot;        &quot;smoke jumper&quot;     &quot;smoked Irish&quot;    
-[109] &quot;smoked Irishman&quot;  &quot;snowflake&quot;        &quot;sooty&quot;           
-[112] &quot;spade&quot;            &quot;spice nigger&quot;     &quot;spickaboo&quot;       
-[115] &quot;spigger&quot;          &quot;spook&quot;            &quot;stovepipe&quot;       
-[118] &quot;sub human&quot;        &quot;suntan&quot;           &quot;tar baby&quot;        
-[121] &quot;teapot&quot;           &quot;thicklips&quot;        &quot;Uncle Tom&quot;       
-[124] &quot;Velcro head&quot;      &quot;whigger&quot;          &quot;white chocolate&quot; 
-[127] &quot;white nigger&quot;     &quot;wigga&quot;            &quot;wigger&quot;          
-[130] &quot;wiggerette&quot;       &quot;yardie&quot;           &quot;yellow bone&quot;     
-[133] &quot;zebra&quot;            &quot;zigabo&quot;           &quot;African-American&quot;
-[136] &quot;blacks&quot;           &quot;AfricanAmerican&quot;  &quot;black people&quot;    
-[139] &quot;black ppl&quot;        &quot;black guy&quot;        &quot;black girl&quot;      
-[142] &quot;black dude&quot;       &quot;black men&quot;        &quot;black female&quot;    
-[145] &quot;black man&quot;        &quot;black male&quot;       &quot;black women&quot;     </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcImFwZVwiICAgICAgICAgICAgICBcIkF1bnQgSmVtaW1hXCIgICAgICBcIkJ1Y2t3aGVhdFwiICAgICAgICBcImNvb25cIiAgICAgICAgICAgIFxuIFs1XSBcImRhcmtleVwiICAgICAgICAgICBcImRhcmtpZVwiICAgICAgICAgICBcImRhcmt5XCIgICAgICAgICAgICBcImdoZXR0b1wiICAgICAgICAgIFxuIFs5XSBcImppZ1wiICAgICAgICAgICAgICBcImppZ2dlclwiICAgICAgICAgICBcIlxcXCJtdWQgZHVja1xcXCJcIiAgICAgXCJcXFwibXVkIHBlcnNvblxcXCJcIiAgXG5bMTNdIFwibmljY2FcIiAgICAgICAgICAgIFwibmlnXCIgICAgICAgICAgICAgIFwiXFxcIm5pZyBub2dcXFwiXCIgICAgICBcIm5pZ2FyXCIgICAgICAgICAgIFxuWzE3XSBcIm5pZ2V0dGVcIiAgICAgICAgICBcIm5pZ2dhclwiICAgICAgICAgICBcIm5pZ2dlclwiICAgICAgICAgICBcIm5pZ2dsZXRcIiAgICAgICAgIFxuWzIxXSBcIm5pZ2dvclwiICAgICAgICAgICBcIm5pZ2dyZXNzXCIgICAgICAgICBcIm5pZ2d1clwiICAgICAgICAgICBcIm5pZ2xldFwiICAgICAgICAgIFxuWzI1XSBcIlxcXCJwb3JjaCBtb25rZXlcXFwiXCIgXCJzYW1ib1wiICAgICAgICAgICAgXCJcXFwic2hpdCBoZWVsXFxcIlwiICAgIFwic29vdHlcIiAgICAgICAgICAgXG5bMjldIFwic3BpY2thYm9vXCIgICAgICAgIFwic3BpZ2dlclwiICAgICAgICAgIFwic3Bvb2tcIiAgICAgICAgICAgIFwiXFxcInN1YiBodW1hblxcXCJcIiAgIFxuWzMzXSBcIlxcXCJ0YXIgYmFieVxcXCJcIiAgICAgXCJ0aGlja2xpcHNcIiAgICAgICAgXCJcXFwiVmVsY3JvIGhlYWRcXFwiXCIgIFwieWFyZGllXCIgICAgICAgICAgXG5bMzddIFwiQWZyaWNhbi1BbWVyaWNhblwiIFwiYmxhY2tzXCIgICAgICAgICAgIFwiQWZyaWNhbkFtZXJpY2FuXCIgIFwiXFxcImJsYWNrIHBlb3BsZVxcXCJcIlxuWzQxXSBcIlxcXCJibGFjayBwcGxcXFwiXCIgICAgXCJcXFwiYmxhY2sgZ3V5XFxcIlwiICAgIFwiXFxcImJsYWNrIGdpcmxcXFwiXCIgICBcIlxcXCJibGFjayBkdWRlXFxcIlwiICBcbls0NV0gXCJcXFwiYmxhY2sgbWVuXFxcIlwiICAgIFwiXFxcImJsYWNrIGZlbWFsZVxcXCJcIiBcIlxcXCJibGFjayBtYW5cXFwiXCIgICAgXCJcXFwiYmxhY2sgbWFsZVxcXCJcIiAgXG5bNDldIFwiXFxcImJsYWNrIHdvbWVuXFxcIlwiIFxuIn0= -->
+<pre><code> [1] &quot;ape&quot;              &quot;Aunt Jemima&quot;      &quot;Buckwheat&quot;        &quot;coon&quot;            
+ [5] &quot;darkey&quot;           &quot;darkie&quot;           &quot;darky&quot;            &quot;ghetto&quot;          
+ [9] &quot;jig&quot;              &quot;jigger&quot;           &quot;\&quot;mud duck\&quot;&quot;     &quot;\&quot;mud person\&quot;&quot;  
+[13] &quot;nicca&quot;            &quot;nig&quot;              &quot;\&quot;nig nog\&quot;&quot;      &quot;nigar&quot;           
+[17] &quot;nigette&quot;          &quot;niggar&quot;           &quot;nigger&quot;           &quot;nigglet&quot;         
+[21] &quot;niggor&quot;           &quot;niggress&quot;         &quot;niggur&quot;           &quot;niglet&quot;          
+[25] &quot;\&quot;porch monkey\&quot;&quot; &quot;sambo&quot;            &quot;\&quot;shit heel\&quot;&quot;    &quot;sooty&quot;           
+[29] &quot;spickaboo&quot;        &quot;spigger&quot;          &quot;spook&quot;            &quot;\&quot;sub human\&quot;&quot;   
+[33] &quot;\&quot;tar baby\&quot;&quot;     &quot;thicklips&quot;        &quot;\&quot;Velcro head\&quot;&quot;  &quot;yardie&quot;          
+[37] &quot;African-American&quot; &quot;blacks&quot;           &quot;AfricanAmerican&quot;  &quot;\&quot;black people\&quot;&quot;
+[41] &quot;\&quot;black ppl\&quot;&quot;    &quot;\&quot;black guy\&quot;&quot;    &quot;\&quot;black girl\&quot;&quot;   &quot;\&quot;black dude\&quot;&quot;  
+[45] &quot;\&quot;black men\&quot;&quot;    &quot;\&quot;black female\&quot;&quot; &quot;\&quot;black man\&quot;&quot;    &quot;\&quot;black male\&quot;&quot;  
+[49] &quot;\&quot;black women\&quot;&quot; </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -282,12 +249,13 @@ No encoding supplied: defaulting to UTF-8.</code></pre>
 <h1>Grab tweets that match those terms</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBncmFiIG4gdHdlZXRzIG1hdGNoaW5nIGVhY2ggb2YgdGhlIHRlcm1zIGluIG91ciBsaXN0XG5uID0gMjAwXG50d2VldF9zYW1wbGUgPC0gc2VhcmNoX3R3ZWV0czIocT10ZXJtX2xpc3QsIG49biwgaW5jbHVkZV9ydHMgPSBGQUxTRSwgbGFuZyA9IFwiZW5cIilcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBncmFiIG4gdHdlZXRzIG1hdGNoaW5nIGVhY2ggb2YgdGhlIHRlcm1zIGluIG91ciBsaXN0XG5uID0gMjAwXG50d2VldF9zYW1wbGUgPC0gc2VhcmNoX3R3ZWV0czIocT10ZXJtX2xpc3QsIG49biwgaW5jbHVkZV9ydHMgPSBGQUxTRSwgbGFuZyA9IFwiZW5cIilcblxuYGBgIn0= -->
 <pre class="r"><code># grab n tweets matching each of the terms in our list
 n = 200
-tweet_sample &lt;- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = &quot;en&quot;)</code></pre>
+tweet_sample &lt;- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = &quot;en&quot;)
+</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcblNlYXJjaGluZyBmb3IgdHdlZXRzLi4uXG5SYXRlIGxpbWl0IGV4Y2VlZGVkIC0gODhSYXRlIGxpbWl0IGV4Y2VlZGVkRmluaXNoZWQgY29sbGVjdGluZyB0d2VldHMhXG5TZWFyY2hpbmcgZm9yIHR3ZWV0cy4uLlxuUmF0ZSBsaW1pdCBleGNlZWRlZCAtIDg4UmF0ZSBsaW1pdCBleGNlZWRlZEZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cblJhdGUgbGltaXQgZXhjZWVkZWQgLSA4OFJhdGUgbGltaXQgZXhjZWVkZWRGaW5pc2hlZCBjb2xsZWN0aW5nIHR3ZWV0cyFcbiJ9 -->
+<!-- rnb-output-begin eyJkYXRhIjoiU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuU2VhcmNoaW5nIGZvciB0d2VldHMuLi5cbkZpbmlzaGVkIGNvbGxlY3RpbmcgdHdlZXRzIVxuIn0= -->
 <pre><code>Searching for tweets...
 Finished collecting tweets!
 Searching for tweets...
@@ -335,273 +303,68 @@ Finished collecting tweets!
 Searching for tweets...
 Finished collecting tweets!
 Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Finished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!
-Searching for tweets...
-Rate limit exceeded - 88Rate limit exceededFinished collecting tweets!</code></pre>
+Finished collecting tweets!</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBtYWtlIGEgc2VhcmNoIHRlcm0gY29sdW1uIGFuZCByZW1vdmUgZHVwbGljYXRlIHRleHRzXG50d2VldF9zYW1wbGUgPC0gdHdlZXRfc2FtcGxlICU+JSBtdXRhdGUoc2VhcmNoX3Rlcm0gPSBzdHJfcmVwbGFjZShyb3duYW1lcyh0d2VldF9zYW1wbGUpLCAnXFxcXC4uKycsJycpKSAlPiUgZGlzdGluY3QodGV4dCwgLmtlZXBfYWxsID0gVFJVRSlcbndyaXRlX2FzX2Nzdih0d2VldF9zYW1wbGUsICdkYXRhL3R3ZWV0X3NhbXBsZTZfMjYuY3N2JywgcHJlcGVuZF9pZHMgPSBGQUxTRSkgIyBzYXZlIHNhbXBsZSBhcyBjc3ZcbiNtYWtlIGEgcmFuZG9tIHN1YnNldCBvZiAxMDAgdHdlZXRzXG5zdWJfc2FtcGxlXzEwMCA8LSB0d2VldF9zYW1wbGUgJT4lIHNhbXBsZV9uKDEwMClcbnN1Yl9zYW1wbGVfMTAwWydpbmRleCddIDwtIHJvd25hbWVzKHN1Yl9zYW1wbGVfMTAwKVxud3JpdGVfYXNfY3N2KHN1Yl9zYW1wbGVfMTAwLCAnZGF0YS9zdWJfc2FtcGxlXzEwMC5jc3YnLCBwcmVwZW5kX2lkcyA9IEZBTFNFKSAjIHNhdmUgc2FtcGxlIGFzIGNzdlxuIyMjIyBsb2FkIHNhbXBsZSBmcm9tIGNzdlxuIyB0d2VldF9zYW1wbGUgPC0gcmVhZF9jc3YoJ2RhdGEvdHdlZXRfc2FtcGxlNl8yNi5jc3YnLCBcbiMgICAgICAgICAgY29sX3R5cGVzID0gY29scyh1c2VyX2lkID0gY29sX2NoYXJhY3RlcigpLCBcbiMgICAgICAgICAgICAgICAgICAgICAgICAgICBzdGF0dXNfaWQgPSBjb2xfY2hhcmFjdGVyKCkpKSAjbWFrZSBzdXJlIHRvIG1haW50YWluIHVzZXJfaWQgYW5kIHN0YXR1c19pZCBhcyBjaGFyYWN0ZXIgc3RyaW5ncyFcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBtYWtlIGEgc2VhcmNoIHRlcm0gY29sdW1uIGFuZCByZW1vdmUgZHVwbGljYXRlIHRleHRzXG50d2VldF9zYW1wbGUgPC0gdHdlZXRfc2FtcGxlICU+JSBtdXRhdGUoc2VhcmNoX3Rlcm0gPSBzdHJfcmVwbGFjZShyb3duYW1lcyh0d2VldF9zYW1wbGUpLCAnXFxcXC4uKycsJycpKSAlPiUgZGlzdGluY3QodGV4dCwgLmtlZXBfYWxsID0gVFJVRSlcbndyaXRlX2FzX2Nzdih0d2VldF9zYW1wbGUsICdkYXRhL3R3ZWV0X3NhbXBsZTZfMjcuY3N2JywgcHJlcGVuZF9pZHMgPSBGQUxTRSkgIyBzYXZlIHNhbXBsZSBhcyBjc3ZcbmBgYCJ9 -->
 <pre class="r"><code># make a search term column and remove duplicate texts
 tweet_sample &lt;- tweet_sample %&gt;% mutate(search_term = str_replace(rownames(tweet_sample), '\\..+','')) %&gt;% distinct(text, .keep_all = TRUE)
-write_as_csv(tweet_sample, 'data/tweet_sample6_26.csv', prepend_ids = FALSE) # save sample as csv
-#make a random subset of 100 tweets
-sub_sample_100 &lt;- tweet_sample %&gt;% sample_n(100)
-sub_sample_100['index'] &lt;- rownames(sub_sample_100)
-write_as_csv(sub_sample_100, 'data/sub_sample_100.csv', prepend_ids = FALSE) # save sample as csv
-#### load sample from csv
-# tweet_sample &lt;- read_csv('data/tweet_sample6_26.csv', 
-#          col_types = cols(user_id = col_character(), 
-#                           status_id = col_character())) #make sure to maintain user_id and status_id as character strings!</code></pre>
+write_as_csv(tweet_sample, 'data/tweet_sample6_27.csv', prepend_ids = FALSE) # save sample as csv</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmV3X3NhbXBsZVxuXG5gYGAifQ== -->
+<pre class="r"><code>new_sample
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXHUwMDFiWzM4OzU7MjQ2bSMgQSB0aWJibGU6IDEwMCB4IDkxXHUwMDFiWzM5bVxuICAgdXNlcl9pZCAgc3RhdHVzX2lkICBjcmVhdGVkX2F0ICAgICAgICAgIHNjcmVlbl9uYW1lIHRleHQgICAgICAgIHNvdXJjZSBkaXNwbGF5X3RleHRfd2nigKZcbiAgIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszOW1cdTAwMWJbMjNtICAgIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszOW1cdTAwMWJbMjNtICAgICAgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxkdHRtPlx1MDAxYlszOW1cdTAwMWJbMjNtICAgICAgICAgICAgICBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzltXHUwMDFiWzIzbSAgICAgICBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzltXHUwMDFiWzIzbSAgICAgICBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzltXHUwMDFiWzIzbSAgICAgICAgICAgICBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGRibD5cdTAwMWJbMzltXHUwMDFiWzIzbVxuXHUwMDFiWzM4OzU7MjUwbSAxXHUwMDFiWzM5bSAyMDIyNTg3NSAxMDExNzUzNDfigKYgMjAxOC0wNi0yNiBcdTAwMWJbMzg7NTsyNDZtMjM6MzA6MDBcdTAwMWJbMzltIGlfRCAgICAgICAgIGNhbiB3aGl0ZSDigKYgVHdlZXTigKYgICAgICAgICAgICAgICA4MlxuXHUwMDFiWzM4OzU7MjUwbSAyXHUwMDFiWzM5bSAyNjk0MDg14oCmIDEwMTE4MTUxNOKApiAyMDE4LTA2LTI3IFx1MDAxYlszODs1OzI0Nm0wMzozNTowM1x1MDAxYlszOW0gaG90bGVzYmlhbuKApiBJc3NhIFJhZSBU4oCmIGRsdnIu4oCmICAgICAgICAgICAgICAxOThcblx1MDAxYlszODs1OzI1MG0gM1x1MDAxYlszOW0gMjMwNjk2M+KApiAxMDExODIyOTDigKYgMjAxOC0wNi0yNyBcdTAwMWJbMzg7NTsyNDZtMDQ6MDU6NTNcdTAwMWJbMzltIGRraWxsYWFfICAgIEBuaXNoaGFhYWHigKYgVHdpdHTigKYgICAgICAgICAgICAgICA2NlxuXHUwMDFiWzM4OzU7MjUwbSA0XHUwMDFiWzM5bSA5OTc2OTk34oCmIDEwMTIwMDEyMOKApiAyMDE4LTA2LTI3IFx1MDAxYlszODs1OzI0Nm0xNTo1NDoyNFx1MDAxYlszOW0gSGFzaHN0cm9zICAgXHUwMDFiWzM4OzU7MjQ2bVwiXHUwMDFiWzM5bUB0aWZmdGhlclx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMzlt4oCmIFR3aXR04oCmICAgICAgICAgICAgICAxODlcblx1MDAxYlszODs1OzI1MG0gNVx1MDAxYlszOW0gNTA1Njk5ODMgMTAxMTQzMTk24oCmIDIwMTgtMDYtMjYgXHUwMDFiWzM4OzU7MjQ2bTAyOjEyOjI2XHUwMDFiWzM5bSBqaGVydXNzZWxsICAjdW5pdHkgI2Nv4oCmIEluc3Rh4oCmICAgICAgICAgICAgICAyMTBcblx1MDAxYlszODs1OzI1MG0gNlx1MDAxYlszOW0gNzM1NDUyMuKApiAxMDEyMDI3NzTigKYgMjAxOC0wNi0yNyBcdTAwMWJbMzg7NTsyNDZtMTc6Mzk6NTBcdTAwMWJbMzltIFNpckRlYWxlclPigKYgQHR5aGluaU1hZOKApiBUd2l0dOKApiAgICAgICAgICAgICAgIDgwXG5cdTAwMWJbMzg7NTsyNTBtIDdcdTAwMWJbMzltIDE2NzEwMjMwIDEwMTIwMTU2MuKApiAyMDE4LTA2LTI3IFx1MDAxYlszODs1OzI0Nm0xNjo1MTo0MFx1MDAxYlszOW0gYnVyaWVkYnlib+KApiBJIGtub3cgc29t4oCmIFR3aXR04oCmICAgICAgICAgICAgICAxOTJcblx1MDAxYlszODs1OzI1MG0gOFx1MDAxYlszOW0gMjI3MDY1NDQgMTAxMTU4NTQ14oCmIDIwMTgtMDYtMjYgXHUwMDFiWzM4OzU7MjQ2bTEyOjIyOjIwXHUwMDFiWzM5bSBwaWNrajc2ICAgICBAUGF0cmljaTkx4oCmIFR3aXR04oCmICAgICAgICAgICAgICAgNTBcblx1MDAxYlszODs1OzI1MG0gOVx1MDAxYlszOW0gNTIwOTY3OeKApiAxMDExOTg5OTfigKYgMjAxOC0wNi0yNyBcdTAwMWJbMzg7NTsyNDZtMTU6MDk6NDdcdTAwMWJbMzltIEFfQ2hhaW56enogIFRoZSBvdGhlciDigKYgVHdpdHTigKYgICAgICAgICAgICAgIDE2MlxuXHUwMDFiWzM4OzU7MjUwbTEwXHUwMDFiWzM5bSAxMzI3NzE04oCmIDEwMTIwMDAwN+KApiAyMDE4LTA2LTI3IFx1MDAxYlszODs1OzI0Nm0xNTo0OTo1M1x1MDAxYlszOW0gb2hkYXNLaWFuYSAg4oCcTmlnZ2VyIG5v4oCmIFR3aXR04oCmICAgICAgICAgICAgICAgMjlcblx1MDAxYlszODs1OzI0Nm0jIC4uLiB3aXRoIDkwIG1vcmUgcm93cywgYW5kIDg0IG1vcmUgdmFyaWFibGVzOiByZXBseV90b19zdGF0dXNfaWQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcmVwbHlfdG9fdXNlcl9pZCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcmVwbHlfdG9fc2NyZWVuX25hbWUgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIGlzX3F1b3RlIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGdsPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBpc19yZXR3ZWV0IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGdsPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIGZhdm9yaXRlX2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCByZXR3ZWV0X2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBoYXNodGFncyBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGxpc3Q+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHN5bWJvbHMgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIHVybHNfdXJsIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgdXJsc190LmNvIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgdXJsc19leHBhbmRlZF91cmwgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBtZWRpYV91cmwgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIG1lZGlhX3QuY28gXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBtZWRpYV9leHBhbmRlZF91cmwgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBtZWRpYV90eXBlIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgZXh0X21lZGlhX3VybCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGxpc3Q+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgZXh0X21lZGlhX3QuY28gXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBleHRfbWVkaWFfZXhwYW5kZWRfdXJsIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgZXh0X21lZGlhX3R5cGUgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgbWVudGlvbnNfdXNlcl9pZCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGxpc3Q+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIG1lbnRpb25zX3NjcmVlbl9uYW1lIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgbGFuZyBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBxdW90ZWRfc3RhdHVzX2lkIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBxdW90ZWRfdGV4dCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcXVvdGVkX2NyZWF0ZWRfYXQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxkdHRtPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIHF1b3RlZF9zb3VyY2UgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHF1b3RlZF9mYXZvcml0ZV9jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcXVvdGVkX3JldHdlZXRfY291bnQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxpbnQ+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcXVvdGVkX3VzZXJfaWQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHF1b3RlZF9zY3JlZW5fbmFtZSBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcXVvdGVkX25hbWUgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcXVvdGVkX2ZvbGxvd2Vyc19jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcXVvdGVkX2ZyaWVuZHNfY291bnQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxpbnQ+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHF1b3RlZF9zdGF0dXNlc19jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBxdW90ZWRfbG9jYXRpb24gXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHF1b3RlZF9kZXNjcmlwdGlvbiBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcXVvdGVkX3ZlcmlmaWVkIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGdsPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIHJldHdlZXRfc3RhdHVzX2lkIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCByZXR3ZWV0X3RleHQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfY3JlYXRlZF9hdCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGR0dG0+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcmV0d2VldF9zb3VyY2UgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfZmF2b3JpdGVfY291bnQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxpbnQ+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfcmV0d2VldF9jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICByZXR3ZWV0X3VzZXJfaWQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfc2NyZWVuX25hbWUgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfbmFtZSBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICByZXR3ZWV0X2ZvbGxvd2Vyc19jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcmV0d2VldF9mcmllbmRzX2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIHJldHdlZXRfc3RhdHVzZXNfY291bnQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxpbnQ+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfbG9jYXRpb24gXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHJldHdlZXRfZGVzY3JpcHRpb24gXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcmV0d2VldF92ZXJpZmllZCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGxnbD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcGxhY2VfdXJsIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBwbGFjZV9uYW1lIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBwbGFjZV9mdWxsX25hbWUgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcGxhY2VfdHlwZSBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgY291bnRyeSBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgY291bnRyeV9jb2RlIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBnZW9fY29vcmRzIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBjb29yZHNfY29vcmRzIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGlzdD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgYmJveF9jb29yZHMgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsaXN0Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBzdGF0dXNfdXJsIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBuYW1lIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIGxvY2F0aW9uIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBkZXNjcmlwdGlvbiBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgdXJsIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBwcm90ZWN0ZWQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxsZ2w+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIGZvbGxvd2Vyc19jb3VudCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGludD5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBmcmllbmRzX2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBsaXN0ZWRfY291bnQgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxpbnQ+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHN0YXR1c2VzX2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBmYXZvdXJpdGVzX2NvdW50IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08aW50Plx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLFxuIyAgIGFjY291bnRfY3JlYXRlZF9hdCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGR0dG0+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHZlcmlmaWVkIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08bGdsPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBwcm9maWxlX3VybCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBwcm9maWxlX2V4cGFuZGVkX3VybCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgYWNjb3VudF9sYW5nIFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBwcm9maWxlX2Jhbm5lcl91cmwgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sXG4jICAgcHJvZmlsZV9iYWNrZ3JvdW5kX3VybCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSwgcHJvZmlsZV9pbWFnZV91cmwgXHUwMDFiWzNtXHUwMDFiWzM4OzU7MjQ2bTxjaHI+XHUwMDFiWzM4OzU7MjQ2bVx1MDAxYlsyM20sIHF1ZXJ5IFx1MDAxYlszbVx1MDAxYlszODs1OzI0Nm08Y2hyPlx1MDAxYlszODs1OzI0Nm1cdTAwMWJbMjNtLCBzZWFyY2hfdGVybSBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbSxcbiMgICBpbmRleCBcdTAwMWJbM21cdTAwMWJbMzg7NTsyNDZtPGNocj5cdTAwMWJbMzg7NTsyNDZtXHUwMDFiWzIzbVx1MDAxYlszOW1cbiJ9 -->
+<pre><code>[38;5;246m# A tibble: 100 x 91[39m
+   user_id  status_id  created_at          screen_name text        source display_text_wi…
+   [3m[38;5;246m&lt;chr&gt;[39m[23m    [3m[38;5;246m&lt;chr&gt;[39m[23m      [3m[38;5;246m&lt;dttm&gt;[39m[23m              [3m[38;5;246m&lt;chr&gt;[39m[23m       [3m[38;5;246m&lt;chr&gt;[39m[23m       [3m[38;5;246m&lt;chr&gt;[39m[23m             [3m[38;5;246m&lt;dbl&gt;[39m[23m
+[38;5;250m 1[39m 20225875 101175347… 2018-06-26 [38;5;246m23:30:00[39m i_D         can white … Tweet…               82
+[38;5;250m 2[39m 2694085… 101181514… 2018-06-27 [38;5;246m03:35:03[39m hotlesbian… Issa Rae T… dlvr.…              198
+[38;5;250m 3[39m 2306963… 101182290… 2018-06-27 [38;5;246m04:05:53[39m dkillaa_    @nishhaaaa… Twitt…               66
+[38;5;250m 4[39m 9976997… 101200120… 2018-06-27 [38;5;246m15:54:24[39m Hashstros   [38;5;246m&quot;[39m@tiffther[38;5;246m[39m… Twitt…              189
+[38;5;250m 5[39m 50569983 101143196… 2018-06-26 [38;5;246m02:12:26[39m jherussell  #unity #co… Insta…              210
+[38;5;250m 6[39m 7354522… 101202774… 2018-06-27 [38;5;246m17:39:50[39m SirDealerS… @tyhiniMad… Twitt…               80
+[38;5;250m 7[39m 16710230 101201562… 2018-06-27 [38;5;246m16:51:40[39m buriedbybo… I know som… Twitt…              192
+[38;5;250m 8[39m 22706544 101158545… 2018-06-26 [38;5;246m12:22:20[39m pickj76     @Patrici91… Twitt…               50
+[38;5;250m 9[39m 5209679… 101198997… 2018-06-27 [38;5;246m15:09:47[39m A_Chainzzz  The other … Twitt…              162
+[38;5;250m10[39m 1327714… 101200007… 2018-06-27 [38;5;246m15:49:53[39m ohdasKiana  “Nigger no… Twitt…               29
+[38;5;246m# ... with 90 more rows, and 84 more variables: reply_to_status_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   reply_to_user_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, reply_to_screen_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, is_quote [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m, is_retweet [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m,
+#   favorite_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, retweet_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, hashtags [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, symbols [3m[38;5;246m&lt;list&gt;[38;5;246m[23m,
+#   urls_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, urls_t.co [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, urls_expanded_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, media_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m,
+#   media_t.co [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, media_expanded_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, media_type [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, ext_media_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m,
+#   ext_media_t.co [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, ext_media_expanded_url [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, ext_media_type [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   mentions_user_id [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, mentions_screen_name [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, lang [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   quoted_status_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_text [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_created_at [3m[38;5;246m&lt;dttm&gt;[38;5;246m[23m,
+#   quoted_source [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_favorite_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, quoted_retweet_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   quoted_user_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_screen_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   quoted_followers_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, quoted_friends_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, quoted_statuses_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   quoted_location [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_description [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, quoted_verified [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m,
+#   retweet_status_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_text [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_created_at [3m[38;5;246m&lt;dttm&gt;[38;5;246m[23m,
+#   retweet_source [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_favorite_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, retweet_retweet_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   retweet_user_id [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_screen_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   retweet_followers_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, retweet_friends_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   retweet_statuses_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, retweet_location [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, retweet_description [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   retweet_verified [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m, place_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, place_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, place_full_name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   place_type [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, country [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, country_code [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, geo_coords [3m[38;5;246m&lt;list&gt;[38;5;246m[23m,
+#   coords_coords [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, bbox_coords [3m[38;5;246m&lt;list&gt;[38;5;246m[23m, status_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, name [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   location [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, description [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, protected [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m, followers_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   friends_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, listed_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, statuses_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m, favourites_count [3m[38;5;246m&lt;int&gt;[38;5;246m[23m,
+#   account_created_at [3m[38;5;246m&lt;dttm&gt;[38;5;246m[23m, verified [3m[38;5;246m&lt;lgl&gt;[38;5;246m[23m, profile_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   profile_expanded_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, account_lang [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, profile_banner_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   profile_background_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, profile_image_url [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, query [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m, search_term [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m,
+#   index [3m[38;5;246m&lt;chr&gt;[38;5;246m[23m[39m</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiR2F0aGVyIFJlbGV2YW50IFR3ZWV0cyB1c2luZyB0aGUgSGF0ZWJhc2Ugc2V0IG9mIHdvcmRzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciBsb2FkIGxpYnJhcmllc30KbGlicmFyeShodHRyKQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeSh4bWwyKQpsaWJyYXJ5KHJ0d2VldCkKYGBgCgoKIyBEb3dubG9hZCBoYXRlYmFzZSB0ZXJtcyBhbmQgZmlsdGVyIHRvIHRob3NlIHdobydzIGxpc3RpbmcgbWVhbmluZyBjb250YWlucyB0aGUgd29yZCAnYmxhY2snCmBgYHtyfQprZXkgPC0gcmVhZF9maWxlKCdyZXNvdXJjZXMvaGF0ZWJhc2VrZXkudHh0JykgIyByZWFkIHN0b3JlZCBhcGkga2V5CnRlcm1zIDwtIGRhdGFfZnJhbWUodGVybXM9Y2hhcmFjdGVyKCksIG1lYW5pbmdzPWNoYXJhY3RlcigpKSAjIGVtcHR5IGRmIGZvciB0ZXJtcwpmb3IocGFnZSBpbiAxOjUpeyAjIGxvb3AgdGhyb3VnaCBudW1iZXIgb2YgcGFnZXMKICByZXF1ZXN0X3VybCA9IHBhc3RlMCgnaHR0cHM6Ly9hcGkuaGF0ZWJhc2Uub3JnL3YzLTAvJywga2V5LCAnL3ZvY2FidWxhcnkveG1sL2Fib3V0X2V0aG5pY2l0eT0xJTdjbGFuZ3VhZ2U9ZW5nJTdjcGFnZT0nLHBhZ2UpICMgbWFrZSBhcGkgY2FsbCB1cmwKICByZXF1ZXN0IDwtIEdFVChyZXF1ZXN0X3VybCkgIyBHRVQgYXBpIHJlc3VsdHMKICBjb250ZW50IDwtIHJlYWRfeG1sKGNvbnRlbnQocmVxdWVzdCwgdHlwZT0ndGV4dCcpKSAjIHByb2Nlc3MgeG1sCiAgdG1wIDwtIGRhdGFfZnJhbWUodGVybXMgPSB1bmxpc3QoYXNfbGlzdCh4bWxfZmluZF9hbGwoY29udGVudCwgeHBhdGggPSAnLy92b2NhYnVsYXJ5JykpKSwgIyBwdWxsIG91dCB0aGUgcmVzdWx0aW5nIHRlcm1zCiAgICAgICAgICAgbWVhbmluZ3MgPSB1bmxpc3QoYXNfbGlzdCh4bWxfZmluZF9hbGwoY29udGVudCwgeHBhdGggPSAnLy9tZWFuaW5nJykpKSkgIyBhbmQgdGhlaXIgbWVhbmluZ3MKICB0ZXJtcyA8LSBiaW5kX3Jvd3ModGVybXMsIHRtcFtzdHJfZGV0ZWN0KHRtcCRtZWFuaW5ncywgJ2JsYWNrJyksXSkgIyBvbmx5IGtlZXAgdGVybXMgd2hpY2ggbWVudGlvbiAnYmxhY2snIGluIHRoZWlyIG1lYW5pbmcgZmllbGQKfQoKYGBgCgpBZGQgUmVuZSdzIHdvcmRzIHRvIG1ha2UgYSBmdWxsIGxpc3Qgb2YgdGVybXMKYGBge3J9CiMgdGVybXMgZnJvbSBGbG9yZXMgMjAxNwpmbG9yZXNfdGVybXMgPC0gYygnQWZyaWNhbi1BbWVyaWNhbicsICdibGFja3MnLCAnQWZyaWNhbkFtZXJpY2FuJywgJ2JsYWNrIHBlb3BsZScsICdibGFjayBwcGwnLCAnYmxhY2sgZ3V5JywgJ2JsYWNrIGdpcmwnLCAnYmxhY2sgZHVkZScsICdibGFjayBtZW4nLCAnYmxhY2sgZmVtYWxlJywgJ2JsYWNrIG1hbicsICdibGFjayBtYWxlJywgJ2JsYWNrIHdvbWVuJykKIyBqb2luZWQgd2l0aCBvdXJzIGZvciBhIGZ1bGwgbGlzdAp0ZXJtX2xpc3QgPC0gYXBwZW5kKHRlcm1zJHRlcm1zLCBmbG9yZXNfdGVybXMpCmBgYAoKIyBHcmFiIHR3ZWV0cyB0aGF0IG1hdGNoIHRob3NlIHRlcm1zCmBgYHtyfQojIGdyYWIgbiB0d2VldHMgbWF0Y2hpbmcgZWFjaCBvZiB0aGUgdGVybXMgaW4gb3VyIGxpc3QKbiA9IDIwMAp0d2VldF9zYW1wbGUgPC0gc2VhcmNoX3R3ZWV0czIocT10ZXJtX2xpc3QsIG49biwgaW5jbHVkZV9ydHMgPSBGQUxTRSwgbGFuZyA9ICJlbiIpCiMgbWFrZSBhIHNlYXJjaCB0ZXJtIGNvbHVtbiBhbmQgcmVtb3ZlIGR1cGxpY2F0ZSB0ZXh0cwp0d2VldF9zYW1wbGUgPC0gdHdlZXRfc2FtcGxlICU+JSBtdXRhdGUoc2VhcmNoX3Rlcm0gPSBzdHJfcmVwbGFjZShyb3duYW1lcyh0d2VldF9zYW1wbGUpLCAnXFwuLisnLCcnKSkgJT4lIGRpc3RpbmN0KHRleHQsIC5rZWVwX2FsbCA9IFRSVUUpCndyaXRlX2FzX2Nzdih0d2VldF9zYW1wbGUsICdkYXRhL3R3ZWV0X3NhbXBsZTZfMjYuY3N2JywgcHJlcGVuZF9pZHMgPSBGQUxTRSkgIyBzYXZlIHNhbXBsZSBhcyBjc3YKCiNtYWtlIGEgcmFuZG9tIHN1YnNldCBvZiAxMDAgdHdlZXRzCgpzdWJfc2FtcGxlXzEwMCA8LSB0d2VldF9zYW1wbGUgJT4lIHNhbXBsZV9uKDEwMCkKc3ViX3NhbXBsZV8xMDBbJ2luZGV4J10gPC0gcm93bmFtZXMoc3ViX3NhbXBsZV8xMDApCndyaXRlX2FzX2NzdihzdWJfc2FtcGxlXzEwMCwgJ2RhdGEvc3ViX3NhbXBsZV8xMDAuY3N2JywgcHJlcGVuZF9pZHMgPSBGQUxTRSkgIyBzYXZlIHNhbXBsZSBhcyBjc3YKIyMjIyBsb2FkIHNhbXBsZSBmcm9tIGNzdgojIHR3ZWV0X3NhbXBsZSA8LSByZWFkX2NzdignZGF0YS90d2VldF9zYW1wbGU2XzI2LmNzdicsIAojICAgICAgICAgIGNvbF90eXBlcyA9IGNvbHModXNlcl9pZCA9IGNvbF9jaGFyYWN0ZXIoKSwgCiMgICAgICAgICAgICAgICAgICAgICAgICAgICBzdGF0dXNfaWQgPSBjb2xfY2hhcmFjdGVyKCkpKSAjbWFrZSBzdXJlIHRvIG1haW50YWluIHVzZXJfaWQgYW5kIHN0YXR1c19pZCBhcyBjaGFyYWN0ZXIgc3RyaW5ncyEKYGBgCgoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiR2F0aGVyIFJlbGV2YW50IFR3ZWV0cyB1c2luZyB0aGUgSGF0ZWJhc2Ugc2V0IG9mIHdvcmRzIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgpgYGB7ciBsb2FkIGxpYnJhcmllc30KbGlicmFyeShodHRyKQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeSh4bWwyKQpsaWJyYXJ5KHJ0d2VldCkKYGBgCgoKIyBEb3dubG9hZCBoYXRlYmFzZSB0ZXJtcyBhbmQgZmlsdGVyIHRvIHRob3NlIHdobydzIGxpc3RpbmcgbWVhbmluZyBjb250YWlucyB0aGUgd29yZCAnYmxhY2snCmBgYHtyIGdldCB0ZXJtc30Ka2V5IDwtIHJlYWRfZmlsZSgncmVzb3VyY2VzL2hhdGViYXNla2V5LnR4dCcpICMgcmVhZCBzdG9yZWQgYXBpIGtleQp0ZXJtcyA8LSBkYXRhX2ZyYW1lKHRlcm1zPWNoYXJhY3RlcigpLCBtZWFuaW5ncz1jaGFyYWN0ZXIoKSkgIyBlbXB0eSBkZiBmb3IgdGVybXMKZm9yKHBhZ2UgaW4gMTo1KXsgIyBsb29wIHRocm91Z2ggbnVtYmVyIG9mIHBhZ2VzCiAgcmVxdWVzdF91cmwgPSBwYXN0ZTAoJ2h0dHBzOi8vYXBpLmhhdGViYXNlLm9yZy92My0wLycsIGtleSwgJy92b2NhYnVsYXJ5L3htbC9hYm91dF9ldGhuaWNpdHk9MSU3Y2xhbmd1YWdlPWVuZyU3Y3BhZ2U9JyxwYWdlKSAjIG1ha2UgYXBpIGNhbGwgdXJsCiAgcmVxdWVzdCA8LSBHRVQocmVxdWVzdF91cmwpICMgR0VUIGFwaSByZXN1bHRzCiAgY29udGVudCA8LSByZWFkX3htbChjb250ZW50KHJlcXVlc3QsIHR5cGU9J3RleHQnKSkgIyBwcm9jZXNzIHhtbAogIHRtcCA8LSBkYXRhX2ZyYW1lKHRlcm1zID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vdm9jYWJ1bGFyeScpKSksICMgcHVsbCBvdXQgdGhlIHJlc3VsdGluZyB0ZXJtcwogICAgICAgICAgIG1lYW5pbmdzID0gdW5saXN0KGFzX2xpc3QoeG1sX2ZpbmRfYWxsKGNvbnRlbnQsIHhwYXRoID0gJy8vbWVhbmluZycpKSkpICMgYW5kIHRoZWlyIG1lYW5pbmdzCiAgdGVybXMgPC0gYmluZF9yb3dzKHRlcm1zLCB0bXBbc3RyX2RldGVjdCh0bXAkbWVhbmluZ3MsICdibGFjaycpLF0pICMgb25seSBrZWVwIHRlcm1zIHdoaWNoIG1lbnRpb24gJ2JsYWNrJyBpbiB0aGVpciBtZWFuaW5nIGZpZWxkCn0KCmBgYAoKQWRkIFJlbmUncyB3b3JkcyB0byBtYWtlIGEgZnVsbCBsaXN0IG9mIHRlcm1zCmBgYHtyIGVkaXQgdGVybXN9CiMgdGVybXMgZnJvbSBGbG9yZXMgMjAxNwpmbG9yZXNfdGVybXMgPC0gYygnQWZyaWNhbi1BbWVyaWNhbicsICdibGFja3MnLCAnQWZyaWNhbkFtZXJpY2FuJywgJ2JsYWNrIHBlb3BsZScsICdibGFjayBwcGwnLCAnYmxhY2sgZ3V5JywgJ2JsYWNrIGdpcmwnLCAnYmxhY2sgZHVkZScsICdibGFjayBtZW4nLCAnYmxhY2sgZmVtYWxlJywgJ2JsYWNrIG1hbicsICdibGFjayBtYWxlJywgJ2JsYWNrIHdvbWVuJykKIyBqb2luZWQgd2l0aCBvdXJzIGZvciBhIGZ1bGwgbGlzdAp0ZXJtX2xpc3QgPC0gYXBwZW5kKHRlcm1zJHRlcm1zLCBmbG9yZXNfdGVybXMpCiN0dXJucyBvdXQgdGhvc2UgdGVybXMgaW5jbHVkZSBsb3RzIG9mIGFtYmlndW91cyB0ZXJtcyBzbyBJIGVkaXRlZCB0aGVtIGJ5IGhhbmQKdGVybV9saXN0IDwtIHJlYWRfbGluZXMoJ3Jlc291cmNlcy9lZGl0ZWRfdGVybV9saXN0XzInKSAjcXVvdGVzIGFyZSBuZWNlc3NhcnkKYGBgCgojIEdyYWIgdHdlZXRzIHRoYXQgbWF0Y2ggdGhvc2UgdGVybXMKYGBge3IgZ2V0IHR3ZWV0c30KIyBncmFiIG4gdHdlZXRzIG1hdGNoaW5nIGVhY2ggb2YgdGhlIHRlcm1zIGluIG91ciBsaXN0Cm4gPSAyMDAKdHdlZXRfc2FtcGxlIDwtIHNlYXJjaF90d2VldHMyKHE9dGVybV9saXN0LCBuPW4sIGluY2x1ZGVfcnRzID0gRkFMU0UsIGxhbmcgPSAiZW4iKQojIG1ha2UgYSBzZWFyY2ggdGVybSBjb2x1bW4gYW5kIHJlbW92ZSBkdXBsaWNhdGUgdGV4dHMKdHdlZXRfc2FtcGxlIDwtIHR3ZWV0X3NhbXBsZSAlPiUgbXV0YXRlKHNlYXJjaF90ZXJtID0gc3RyX3JlcGxhY2Uocm93bmFtZXModHdlZXRfc2FtcGxlKSwgJ1xcLi4rJywnJykpICU+JSBkaXN0aW5jdCh0ZXh0LCAua2VlcF9hbGwgPSBUUlVFKQp3cml0ZV9hc19jc3YodHdlZXRfc2FtcGxlLCAnZGF0YS90d2VldF9zYW1wbGU2XzI3LmNzdicsIHByZXBlbmRfaWRzID0gRkFMU0UpICMgc2F2ZSBzYW1wbGUgYXMgY3N2CmxpbWl0ZWQgPC0gbmV3X3NhbXBsZSAlPiUgc2VsZWN0KHRleHQsIHNlYXJjaF90ZXJtKQoKI21ha2UgYSByYW5kb20gc3Vic2V0IG9mIDEwMCB0d2VldHMKCnN1Yl9zYW1wbGVfMTAwIDwtIHR3ZWV0X3NhbXBsZSAlPiUgc2FtcGxlX24oMTAwKQpzdWJfc2FtcGxlXzEwMFsnaW5kZXgnXSA8LSByb3duYW1lcyhzdWJfc2FtcGxlXzEwMCkKd3JpdGVfYXNfY3N2KHN1Yl9zYW1wbGVfMTAwLCAnZGF0YS9zdWJfc2FtcGxlXzEwMC5jc3YnLCBwcmVwZW5kX2lkcyA9IEZBTFNFKSAjIHNhdmUgc2FtcGxlIGFzIGNzdgojIyMjIGxvYWQgc2FtcGxlIGZyb20gY3N2CiMgdHdlZXRfc2FtcGxlIDwtIHJlYWRfY3N2KCdkYXRhL3R3ZWV0X3NhbXBsZTZfMjYuY3N2JywgCiMgICAgICAgICAgY29sX3R5cGVzID0gY29scyh1c2VyX2lkID0gY29sX2NoYXJhY3RlcigpLCAKIyAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0YXR1c19pZCA9IGNvbF9jaGFyYWN0ZXIoKSkpICNtYWtlIHN1cmUgdG8gbWFpbnRhaW4gdXNlcl9pZCBhbmQgc3RhdHVzX2lkIGFzIGNoYXJhY3RlciBzdHJpbmdzIQpgYGAKCgpgYGB7ciBhZGp1c3Qgc2FtcGxlfQppYW5zX3JhdGluZ3MgPC0gcmVhZF9jc3YoImRhdGEvaWFuJ3MgcmF0aW5ncy5jc3YiLCBjb2xfdHlwZXMgPSBjb2xzKGlkID0gY29sX2NoYXJhY3RlcigpKSkKbm9uX3plcm8gPC0gaWFuc19yYXRpbmdzICU+JSBmaWx0ZXIocmF0aW5nIT0wKQpub25femVyb19mdWxsIDwtIHNlbWlfam9pbihzdWJfc2FtcGxlXzEwMCxub25femVybywgYnkgPSBjKCdzdGF0dXNfaWQnID0gJ2lkJykpCm5ld19zYW1wbGUgPC0gdHdlZXRfc2FtcGxlICU+JSBzYW1wbGVfbig1NikgJT4lIGJpbmRfcm93cyhub25femVyb19mdWxsKSAlPiUgc2FtcGxlX24oMTAwKQpuZXdfc2FtcGxlWydpbmRleCddIDwtIDE6MTAwCndyaXRlX2FzX2NzdihzYW1wbGVfbihuZXdfc2FtcGxlLDEwMCksICdkYXRhL3Rlc3RfdHdlZXRzLmNzdicsIHByZXBlbmRfaWRzID0gRkFMU0UpCgpgYGAKCgo=</div>
 
 
 

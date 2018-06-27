@@ -65,7 +65,8 @@ shinyServer(
     ## This is the main experiment handler
     #Observe the finish button, if cliked, end experiment
     observeEvent(input$finish_rating, {
-      
+      disable("submit")
+      disable("finish_rating")
       # Call function formData() (see below) to record submitted response
       newLine <- isolate(formData())
       
@@ -92,7 +93,9 @@ shinyServer(
     })
     # Observe the submit button, if clicked... FIRE
     observeEvent(input$submit, {
-
+      disable("submit")
+      disable("finish_rating")
+  
       # Call function formData() (see below) to record submitted response
       newLine <- isolate(formData())
       
@@ -107,11 +110,15 @@ shinyServer(
       })
       
       shinyjs::reset('form')
+      enable("submit")
+      enable("finish_rating")
       # Are there anymore tweets left?
       # If not then...
       
       #print(paste("is it true?",start_tweet(input$user)+values$round>=dim(tweet_df)[[1]]))
       if(start_tweet(input$user)+values$round>dim(tweet_df)[[1]]){
+        disable("submit")
+        disable("finish_rating")
         # Call function formData() (see below) to record submitted response
         newLine <- isolate(formData())
 
