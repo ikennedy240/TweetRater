@@ -32,12 +32,14 @@ Add Rene's words to make a full list of terms
 flores_terms <- c('African-American', 'blacks', 'AfricanAmerican', 'black people', 'black ppl', 'black guy', 'black girl', 'black dude', 'black men', 'black female', 'black man', 'black male', 'black women')
 # joined with ours for a full list
 term_list <- append(terms$terms, flores_terms)
+#turns out those terms include lots of ambiguous terms so I edited them by hand
+term_list <- read_lines('resources/edited_term_list') #quotes are necessary
 ```
 
 # Grab tweets that match those terms
 ```{r}
 # grab n tweets matching each of the terms in our list
-n = 200
+n = 100
 tweet_sample <- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = "en")
 # make a search term column and remove duplicate texts
 tweet_sample <- tweet_sample %>% mutate(search_term = str_replace(rownames(tweet_sample), '\\..+','')) %>% distinct(text, .keep_all = TRUE)

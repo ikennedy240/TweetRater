@@ -57,9 +57,11 @@ shinyServer(
     #output$tweet_alt = renderText(as.integer(start_tweet(input$user)+values$round))
     # df will carry the responses submitted by the user
     values$df <- NULL
-    output$goodbye_image = renderText('<img src="https://media.giphy.com/media/3otPoUkg3hBxQKRJ7y/giphy.gif">')
-    
-    
+    output$goodbye_image = renderText('<img src="https://media.giphy.com/media/osjgQPWRx3cac/giphy.gif" height="100" width="100">')
+    # Tell user where she is
+    output$round_info <- renderText({
+      paste0("Tweet #",as.integer(start_tweet(input$user)+values$round))
+    })
     ## This is the main experiment handler
     #Observe the finish button, if cliked, end experiment
     observeEvent(input$finish_rating, {
@@ -76,7 +78,11 @@ shinyServer(
       if(values$round==1){
         output$end_message = renderText(paste0('You rated ', values$round, ' Tweet, Thank you ', input$user,'!'))
       } else{
-        output$end_message = renderText(paste0('You rateed ', values$round, ' Tweets, Thank you ', input$user,'!'))
+        output$end_message = renderText(paste0('You rated ', values$round, ' Tweets, Thank you ', input$user,'!'))
+      }
+      output$response_form = renderText("See you next time!")
+      if(start_tweet(input$user)+values$round>=dim(tweet_df)[[1]]){
+        output$response_form = renderText('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSclOxuQ5dEX0MYDOhobDiWz1wndGUp6Uf74fuv_6KEQgCaIrw/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>')
       }
       update_tweet_count(input$user, values$round)
       # Say good-bye
@@ -100,10 +106,12 @@ shinyServer(
         values$round <- values$round +1
       })
       
+      shinyjs::reset('form')
       # Are there anymore tweets left?
       # If not then...
       
-      if(values$round==dim(tweet_df)[[1]]){
+      #print(paste("is it true?",start_tweet(input$user)+values$round>=dim(tweet_df)[[1]]))
+      if(start_tweet(input$user)+values$round>dim(tweet_df)[[1]]){
         # Call function formData() (see below) to record submitted response
         newLine <- isolate(formData())
 
@@ -114,6 +122,8 @@ shinyServer(
         #save the data
         saveData(values$df)
         output$end_message = renderText(paste0('There are no more tweets. You rateed ', values$round, ' Tweets, Thank you!'))
+        output$response_form = renderText('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSclOxuQ5dEX0MYDOhobDiWz1wndGUp6Uf74fuv_6KEQgCaIrw/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>')
+          
         # Say good-bye
         update_tweet_count(input$user, values$round)
         hide(id = "form")
@@ -130,20 +140,10 @@ shinyServer(
     # Gather all the form inputs (and add timestamp)
     formData <- reactive({
       data <- sapply(fieldsAll, function(x) input[[x]])
-      data <- c(round = values$round, data, id = tweet_df$status_id[start_tweet(input$user)+values$round], screenname = tweet_df$screen_name[start_tweet(input$user)+values$round], timestamp = humanTime())
+      data <- c(index = start_tweet(input$user)+values$round, data, id = tweet_df$status_id[start_tweet(input$user)+values$round], screenname = tweet_df$screen_name[start_tweet(input$user)+values$round], timestamp = humanTime())
       data <- t(data)
       data
     })
-    
-    # This renders the table of choices made by a participant that is shown
-    # to them on the final screen
-   
-    # Tell user where she is
-    output$round_info <- renderText({
-      paste0("Tweet #",as.integer(start_tweet(input$user)+values$round-1))
-    })
-    #output$tweet_html <- "<blockquote class=\"twitter-tweet\"><p lang=\"en\" dir=\"ltr\">From the sets of <a href=\"https://twitter.com/hashtag/PSPK25?src=hash&amp;ref_src=twsrc%5Etfw\">#PSPK25</a> <a href=\"https://twitter.com/hashtag/Trivikram?src=hash&amp;ref_src=twsrc%5Etfw\">#Trivikram</a> <a href=\"https://twitter.com/hashtag/PawanKalyan?src=hash&amp;ref_src=twsrc%5Etfw\">#PawanKalyan</a> <a href=\"https://twitter.com/KeerthyOfficial?ref_src=twsrc%5Etfw\">@KeerthyOfficial</a> <a href=\"https://t.co/SxDzt745WZ\">pic.twitter.com/SxDzt745WZ</a></p>&mdash; Trivikram Dialogues (@TrivikramFans) <a href=\"https://twitter.com/TrivikramFans/status/928967148734636032?ref_src=twsrc%5Etfw\">November 10, 2017</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n"
-    #output$tweet_html = renderText('<blockquote class=\"twitter-tweet\"><p lang=\"en\" dir=\"ltr\">From the sets of <a href=\"https://twitter.com/hashtag/PSPK25?src=hash&amp;ref_src=twsrc%5Etfw\">#PSPK25</a> <a href=\"https://twitter.com/hashtag/Trivikram?src=hash&amp;ref_src=twsrc%5Etfw\">#Trivikram</a> <a href=\"https://twitter.com/hashtag/PawanKalyan?src=hash&amp;ref_src=twsrc%5Etfw\">#PawanKalyan</a> <a href=\"https://twitter.com/KeerthyOfficial?ref_src=twsrc%5Etfw\">@KeerthyOfficial</a> <a href=\"https://t.co/SxDzt745WZ\">pic.twitter.com/SxDzt745WZ</a></p>&mdash; Trivikram Dialogues (@TrivikramFans) <a href=\"https://twitter.com/TrivikramFans/status/928967148734636032?ref_src=twsrc%5Etfw\">November 10, 2017</a></blockquote>\n<script async src=\"https://platform.twitter.com/widgets.js\" charset=\"utf-8\"></script>\n')
-    
+
   }
 )

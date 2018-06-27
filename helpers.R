@@ -6,7 +6,7 @@ token <- readRDS("resources/droptoken.rds")
 db_dir = 'tweetratings'
 suppressMessages(gs_auth(token = "resources/googlesheets_token.rds", verbose = FALSE))
 # which fields get saved
-fieldsAll <- c("user", "rating", "stereotype")
+fieldsAll <- c("user", "rating", "topic", "notes")
 
 # dropbox responses format self-explanatory
 responsesDir <- file.path("responses")
@@ -45,9 +45,12 @@ start_tweet <- function(user){
     start = as.integer(drop_read_csv(path, dtoken=token, row.names = 1, colClasses = "character")[2,1])
   }
   else{
-    start = 1
+    start = 0
     write.csv(c(user,start), filename)
     drop_upload(filename, db_dir, dtoken=token)
+  }
+  if(tolower(user)=='noface'){
+    start = 99
   }
   return(start)
 }

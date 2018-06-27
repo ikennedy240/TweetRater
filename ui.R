@@ -37,8 +37,8 @@ shinyUI(fluidPage(
            racism you feel is present in that tweet. The rating is meant to be based on your subjective
            reading, not some objective standard. You should also consider the overall tone of the tweet and, if possible,
            the context. If it was tweeted in reply to another tweet, that tweet will appear about the key tweet. 
-           Please rate the bottom tweet only, as in the example below. Then, record whether you think the tweet
-           has any stereotypes about black people in it. Make sure you click 'Save Ratings and Exit' to record your responses."),
+           Please rate the bottom tweet only, as in the example below. You can record any notes you have about the text
+           as well. Make sure you click 'Save Ratings and Exit' to record your responses."),
          actionButton("confirm", label = "Ok, I got it... let's start"),
          img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive")
          #add instructions vis tweet context
@@ -56,19 +56,21 @@ shinyUI(fluidPage(
           p("Look at the tweet or tweet conversation. Use the sentiment rater to evaluate
             the sentiment the tweet presents. If the tweet doesn't show up or look right, 
             hit 'Save Ratings and Exit' and reload the rater."),
+          checkboxGroupInput("topic",
+                       label = h3("Check all applicable topics"),
+                       choices = c('Black Men', 'Black Women', 'Black People')),
           radioButtons("rating",
                        label = h3("Sentiment Rating towards black people"),
                        choices = likert,
                        selected = 0),
-          radioButtons("stereotype",
-                       label = h3("Was there a stereotype present?"),
-                       choices = list("Yes"=1, "No"=0),
-                       selected = 0),
+          textInput("notes",
+                    label = h3("Any notes about your rathing here?"),
+                    placeholder = "notes"
+                    ),
           actionButton("submit", "Submit", class = "btn-primary"),
           br(),br(),
           actionButton("finish_rating", "Save Ratings and Exit", class = "btn-primary")
         ),
-        
         mainPanel(
           h4(textOutput("round_info")),
           uiOutput("tweet_html", inline = TRUE)
@@ -87,11 +89,12 @@ shinyUI(fluidPage(
       sidebarLayout(
         
         sidebarPanel(
+          uiOutput("goodbye_image"),
           textOutput("end_message")
         ),
         
         mainPanel(
-          uiOutput("goodbye_image")
+          uiOutput('response_form')
         )
       )
     )
