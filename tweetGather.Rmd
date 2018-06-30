@@ -65,7 +65,55 @@ non_zero_full <- semi_join(sub_sample_100,non_zero, by = c('status_id' = 'id'))
 new_sample <- tweet_sample %>% sample_n(56) %>% bind_rows(non_zero_full) %>% sample_n(100)
 new_sample['index'] <- 1:100
 write_as_csv(sample_n(new_sample,100), 'data/test_tweets.csv', prepend_ids = FALSE)
-
+current_sample <- read_csv('data/test_tweets.csv', 
+         col_types = cols(user_id = col_character(),
+                          status_id = col_character()))
 ```
 
+```{r}
+files <- list.files('data/responses')
+ratings = data_frame(
+  index = col_integer(),
+  user = col_character(),
+  rating = col_integer(),
+  topic = col_character(),
+  notes = col_character(),
+  id = col_character(),
+  screenname = col_character(),
+  timestamp = col_character()
+)
+for(file in files){
+  tmp <- read_csv(paste0('data/responses/',file))
+  ratings <- rbind(ratings, tmp)
+}
+ratings <- ratings %>% filter(user!="rox chiappa") %>% mutate(rating_sign = sign(rating))
+means <- ratings %>% select(index, user, rating, rating_sign) %>% group_by(index) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
+ratings <- ratings %>% 
+  select(index, user, rating, rating_sign) %>% 
+  inner_join(means)
+
+
+ratings %>% mutate(meansqerr = (mean-rating)^2,
+                   error_sign = (mean_sign-rating_sign)^2) %>% 
+  group_by(index) %>% 
+  summarise(error_sign = mean(error_sign)) %>% 
+  filter(error_sign ==0)
+
+ratings %>% inner_join(new_sample %>% select(screen_name, text) %>% mutate(index=1:100), by = 'index') %>% write_csv('data/ratings_6_29.csv')
+```
+
+```{r}
+ratings %>% filter(user!="rox chiappa") %>%
+  ggplot(aes(factor(sign(mean)), rating))+
+    geom_boxplot(aes(color=user))+
+    xlab("Sign of Mean Rating")+
+    ylab("User Rating")
+```
+
+```{r}
+ratings %>% mutate(agree = rating_sign==mean_sign) %>% group_by(user) %>% count(agree)
+```
+
+```{r}
+```
 
