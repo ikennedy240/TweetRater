@@ -11,99 +11,127 @@ library(rtweet)
 ```
 
 
-# Download hatebase terms and filter to those who's listing meaning contains the word 'black'
+# Import term list
 ```{r get terms}
-key <- read_file('resources/hatebasekey.txt') # read stored api key
-terms <- data_frame(terms=character(), meanings=character()) # empty df for terms
-for(page in 1:5){ # loop through number of pages
-  request_url = paste0('https://api.hatebase.org/v3-0/', key, '/vocabulary/xml/about_ethnicity=1%7clanguage=eng%7cpage=',page) # make api call url
-  request <- GET(request_url) # GET api results
-  content <- read_xml(content(request, type='text')) # process xml
-  tmp <- data_frame(terms = unlist(as_list(xml_find_all(content, xpath = '//vocabulary'))), # pull out the resulting terms
-           meanings = unlist(as_list(xml_find_all(content, xpath = '//meaning')))) # and their meanings
-  terms <- bind_rows(terms, tmp[str_detect(tmp$meanings, 'black'),]) # only keep terms which mention 'black' in their meaning field
-}
-
+# see archive/tweetGather_old.rmd for gathering the term list
+# this list has the list of terms for black folks from Flores 2017 plus some extra terms 
+# which we think might be common anti-black slurs. Once we have a tool for separating out 
+# tweets that aren't about black folks, we could try adding more terms
+term_list <- read_lines('resources/edited_term_list_2')
 ```
 
-Add Rene's words to make a full list of terms
-```{r edit terms}
-# terms from Flores 2017
-flores_terms <- c('African-American', 'blacks', 'AfricanAmerican', 'black people', 'black ppl', 'black guy', 'black girl', 'black dude', 'black men', 'black female', 'black man', 'black male', 'black women')
-# joined with ours for a full list
-term_list <- append(terms$terms, flores_terms)
-#turns out those terms include lots of ambiguous terms so I edited them by hand
-term_list <- read_lines('resources/edited_term_list_2') #quotes are necessary
-```
-
-# Grab tweets that match those terms
-```{r get tweets}
-# grab n tweets matching each of the terms in our list
-n = 200
-tweet_sample <- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = "en")
-# make a search term column and remove duplicate texts
-tweet_sample <- tweet_sample %>% mutate(search_term = str_replace(rownames(tweet_sample), '\\..+','')) %>% distinct(text, .keep_all = TRUE)
-write_as_csv(tweet_sample, 'data/tweet_sample6_27.csv', prepend_ids = FALSE) # save sample as csv
-limited <- new_sample %>% select(text, search_term)
-
-#make a random subset of 100 tweets
-
-sub_sample_100 <- tweet_sample %>% sample_n(100)
-sub_sample_100['index'] <- rownames(sub_sample_100)
-write_as_csv(sub_sample_100, 'data/sub_sample_100.csv', prepend_ids = FALSE) # save sample as csv
-#### load sample from csv
-# tweet_sample <- read_csv('data/tweet_sample6_26.csv', 
-#          col_types = cols(user_id = col_character(), 
-#                           status_id = col_character())) #make sure to maintain user_id and status_id as character strings!
-```
-
-
-```{r adjust sample}
-ians_ratings <- read_csv("data/ian's ratings.csv", col_types = cols(id = col_character()))
-non_zero <- ians_ratings %>% filter(rating!=0)
-non_zero_full <- semi_join(sub_sample_100,non_zero, by = c('status_id' = 'id'))
-new_sample <- tweet_sample %>% sample_n(56) %>% bind_rows(non_zero_full) %>% sample_n(100)
-new_sample['index'] <- 1:100
-write_as_csv(sample_n(new_sample,100), 'data/test_tweets.csv', prepend_ids = FALSE)
-current_sample <- read_csv('data/test_tweets.csv', 
-         col_types = cols(user_id = col_character(),
-                          status_id = col_character()))
-```
-
+# Import current full tweet set and add some new tweets
+I want to keep a file that includes all the tweets that we've downloaded for the project because those will be the sampling frame from which we've drawn past samples. We can still, if we want, make new samples entirely from new tweets, but I want to make sure that we have the option to remove previously downloaded tweets as well as, of course, removing tweets that were included in past sampling frames.
 ```{r}
+# load previous full set
+full_tweet_set <- read_csv('data/tweets/full_tweet_set.csv', 
+         col_types = cols(user_id = col_character(),
+                          status_id = col_character(),
+                          reply_to_status_id = col_character(),
+                          reply_to_user_id = col_character(),
+                          mentions_user_id = col_character(),
+                          quoted_status_id = col_character(),
+                          quoted_user_id = col_character(),
+                          retweet_status_id = col_character(),
+                          retweet_user_id = col_character()))
+tweet_sample %>% select(ends_with('_id')) %>% names()
+mutate(sample_date = ifelse(status_id %in% current_sample$status_id, '27-06-2018',sample_date)) %>% write_csv('data/tweets/full_tweet_set.csv')
+```
+
+
+```{r get new tweets}
+# grab n tweets matching each of the terms in our list
+n = 100
+tweet_sample <- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = "en")
+
+# make a search term column and remove duplicate texts
+tweet_sample <- tweet_sample %>% 
+  mutate(search_term = str_replace(rownames(tweet_sample), '\\..+',''))
+
+# optionally add some user histories
+  # load some set of old responses
+old_responses <- read_csv('data/ratings/responses30_06_2018.csv', 
+                          col_types = cols(user_id = col_character(),
+                          status_id = col_character()))
+#get the users with the lowest mean ratings
+target_sns <- old_responses %>% group_by(screenname) %>% summarise(mean = mean(mean)) %>% arrange(mean) %>% head(2)
+
+# grab the timelines from those users
+low_mean_user_tweets <- get_timelines(target_sns$screenname, n=500) %>%
+  mutate(search_term = screen_name) %>% # add a search term colunm with the screen_name
+  filter(str_detect(text,regex('black|nigger|porch|race|bait', ignore_case = T)))  #filter to some relavent terms
+
+tweet_sample <- bind_rows(tweet_sample, low_mean_user_tweets) %>% # bind with tweet sample
+  distinct(text, .keep_all = TRUE) %>% # drope dupes
+  filter(!(status_id %in% full_tweet_set$status_id)) # drop previously collected tweets
+
+
+# save that sample with the date it was collected
+write_as_csv(tweet_sample, 
+             paste0('data/tweets/tweet_sample_',format(Sys.time(), "%d_%m_%Y"),'.csv'), 
+             prepend_ids = FALSE)
+
+```
+
+
+```{r make new sample subset}
+#make a random subset of k tweets
+k = 50
+sub_sample <- tweet_sample %>% 
+  sample_n(k) %>% 
+  mutate(sample_date = format(Sys.time(), "%d_%m_%Y"))
+sub_sample['index'] <- 1:k
+# save as test_tweets for transfer to rater
+write_as_csv(sub_sample, 'data/test_tweets.csv', prepend_ids = FALSE) # save sample as csv
+
+# merge everything into the full set and label the new sample with the date
+full_tweet_set <- bind_rows(full_tweet_set, flatten(tweet_sample)) %>% 
+  mutate(sample_date = ifelse(status_id %in% sub_sample$status_id, format(Sys.time(), "%d_%m_%Y"),sample_date))
+# write the full sample to disk
+full_tweet_set %>% write_csv('data/tweets/full_tweet_set.csv')
+```
+
+
+```{r process responses}
+# grab the list of files
 files <- list.files('data/responses')
-ratings = data_frame(
+# dart an empty data frame
+responses = data_frame(
   index = col_integer(),
   user = col_character(),
   rating = col_integer(),
   topic = col_character(),
   notes = col_character(),
-  id = col_character(),
-  screenname = col_character(),
+  status_id = col_character(),
+  screen_name = col_character(),
   timestamp = col_character()
 )
+# read all the files
 for(file in files){
   tmp <- read_csv(paste0('data/responses/',file))
-  ratings <- rbind(ratings, tmp)
+  responses <- rbind(responses, tmp)
 }
-ratings <- ratings %>% filter(user!="rox chiappa") %>% mutate(rating_sign = sign(rating))
-means <- ratings %>% select(index, user, rating, rating_sign) %>% group_by(index) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
-ratings <- ratings %>% 
-  select(index, user, rating, rating_sign) %>% 
-  inner_join(means)
 
+# calculate mean ratings
+responses <- responses %>% mutate(rating_sign = sign(rating))
+means <- responses %>% group_by(index) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
+responses <- responses %>% inner_join(means)
 
-ratings %>% mutate(meansqerr = (mean-rating)^2,
+# look at the mean errors
+responses %>% mutate(meansqerr = (mean-rating)^2,
                    error_sign = (mean_sign-rating_sign)^2) %>% 
   group_by(index) %>% 
   summarise(error_sign = mean(error_sign)) %>% 
   filter(error_sign ==0)
 
-ratings %>% inner_join(new_sample %>% select(screen_name, text) %>% mutate(index=1:100), by = 'index') %>% write_csv('data/ratings_6_29.csv')
+# save responses to disk
+responses %>% 
+  inner_join(sub_sample %>% select(text, status_id), by = 'status_id') %>%
+  write_csv(paste0('data/ratings/responses', format(Sys.time(), "%d_%m_%Y"),'.csv'))
 ```
 
 ```{r}
-ratings %>% filter(user!="rox chiappa") %>%
+responses %>% filter(user!="rox chiappa") %>%
   ggplot(aes(factor(sign(mean)), rating))+
     geom_boxplot(aes(color=user))+
     xlab("Sign of Mean Rating")+
@@ -111,9 +139,5 @@ ratings %>% filter(user!="rox chiappa") %>%
 ```
 
 ```{r}
-ratings %>% mutate(agree = rating_sign==mean_sign) %>% group_by(user) %>% count(agree)
+responses %>% mutate(agree = rating_sign==mean_sign) %>% group_by(user) %>% count(agree)
 ```
-
-```{r}
-```
-

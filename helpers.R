@@ -1,6 +1,7 @@
 library(httr)
 library(rdrop2)
 library(googlesheets)
+library(readr)
 
 token <- readRDS("resources/droptoken.rds")
 db_dir = 'tweetratings'
@@ -99,7 +100,7 @@ saveData <- function(data) {
                       humanTime(),
                       digest::digest(data))
   
-  write.csv(x = data, file = file.path(responsesDir, fileName),
+  write_csv(x = data, file = file.path(responsesDir, fileName),
             row.names = FALSE, quote = TRUE)
   drop_upload(file = file.path(responsesDir, fileName), 
               path = file.path(db_dir,responsesDir),

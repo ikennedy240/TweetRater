@@ -147,7 +147,7 @@ shinyServer(
     # Gather all the form inputs (and add timestamp)
     formData <- reactive({
       data <- sapply(fieldsAll, function(x) input[[x]])
-      data <- c(index = start_tweet(input$user)+values$round, data, id = tweet_df$status_id[start_tweet(input$user)+values$round], screenname = tweet_df$screen_name[start_tweet(input$user)+values$round], timestamp = humanTime())
+      data <- c(index = start_tweet(input$user)+values$round, data, status_id = tweet_df$status_id[start_tweet(input$user)+values$round], screen_name = tweet_df$screen_name[start_tweet(input$user)+values$round], timestamp = humanTime())
       data <- t(data)
       data
     })
