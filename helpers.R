@@ -100,8 +100,9 @@ saveData <- function(data) {
                       humanTime(),
                       digest::digest(data))
   
-  write_csv(x = data, file = file.path(responsesDir, fileName),
-            row.names = FALSE, quote = TRUE)
+  write.csv(x = data, file = file.path(responsesDir, fileName),
+            row.names = FALSE, quote = c(1:8))
+  #write_csv(x = data, path = file.path(responsesDir, fileName))
   drop_upload(file = file.path(responsesDir, fileName), 
               path = file.path(db_dir,responsesDir),
               dtoken = token)

@@ -4,7 +4,6 @@ require(dplyr)
 
 source('helpers.R')
 
-
 shinyServer(
   function(input, output, session) {
     
@@ -25,7 +24,7 @@ shinyServer(
       # If credentials are valid push user into experiment
       if(user_ok){
         shinyjs::hide("login_page")
-        shinyjs::show("instructions")
+        shinyjs::show("form")
         
         # Save username to write into data file
         output$username <- renderText({input$user})
