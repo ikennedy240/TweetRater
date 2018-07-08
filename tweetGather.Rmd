@@ -8,6 +8,7 @@ library(httr)
 library(tidyverse)
 library(xml2)
 library(rtweet)
+library(irr)
 ```
 
 
@@ -34,7 +35,7 @@ full_tweet_set <- read_csv('data/tweets/full_tweet_set.csv',
                           quoted_user_id = col_character(),
                           retweet_status_id = col_character(),
                           retweet_user_id = col_character()))
-tweet_sample %>% select(ends_with('_id')) %>% names()
+# tweet_sample %>% select(ends_with('_id')) %>% names()
 mutate(sample_date = ifelse(status_id %in% current_sample$status_id, '27-06-2018',sample_date)) %>% write_csv('data/tweets/full_tweet_set.csv')
 ```
 
@@ -50,16 +51,16 @@ tweet_sample <- tweet_sample %>%
 
 # optionally add some user histories
   # load some set of old responses
-old_responses <- read_csv('data/ratings/responses30_06_2018.csv', 
+old_responses <- read_csv('data/ratings/responses07_07_2018.csv', 
                           col_types = cols(user_id = col_character(),
                           status_id = col_character()))
 #get the users with the lowest mean ratings
-target_sns <- old_responses %>% group_by(screenname) %>% summarise(mean = mean(mean)) %>% arrange(mean) %>% head(2)
+target_sns <- old_responses %>% group_by(screen_name) %>% summarise(mean = mean(mean)) %>% arrange(mean) %>% head(3)
 
 # grab the timelines from those users
-low_mean_user_tweets <- get_timelines(target_sns$screenname, n=500) %>%
+low_mean_user_tweets <- get_timelines(target_sns$screen_name, n=500) %>%
   mutate(search_term = screen_name) %>% # add a search term colunm with the screen_name
-  filter(str_detect(text,regex('black|nigger|porch|race|bait', ignore_case = T)))  #filter to some relavent terms
+  filter(str_detect(text,regex('black|nigger|porch|race|bait', ignore_case = T)), is.na(`retweet_created_at`)) #filter to some relavent terms
 
 tweet_sample <- bind_rows(tweet_sample, low_mean_user_tweets) %>% # bind with tweet sample
   distinct(text, .keep_all = TRUE) %>% # drope dupes
@@ -76,7 +77,7 @@ write_as_csv(tweet_sample,
 
 ```{r make new sample subset}
 #make a random subset of k tweets
-k = 50
+k = 40
 sub_sample <- tweet_sample %>% 
   sample_n(k) %>% 
   mutate(sample_date = format(Sys.time(), "%d_%m_%Y"))
@@ -89,12 +90,13 @@ full_tweet_set <- bind_rows(full_tweet_set, flatten(tweet_sample)) %>%
   mutate(sample_date = ifelse(status_id %in% sub_sample$status_id, format(Sys.time(), "%d_%m_%Y"),sample_date))
 # write the full sample to disk
 full_tweet_set %>% write_csv('data/tweets/full_tweet_set.csv')
+
 ```
 
 
 ```{r process responses}
 # grab the list of files
-files <- list.files('data/responses')
+files <- list.files('data/ratings/responses')
 # dart an empty data frame
 responses = data_frame(
   index = col_integer(),
@@ -108,12 +110,15 @@ responses = data_frame(
 )
 # read all the files
 for(file in files){
-  tmp <- read_csv(paste0('data/responses/',file))
+  tmp <- read_csv(paste0('data/ratings/responses/',file), 
+                  col_types = cols(status_id = col_character()))
   responses <- rbind(responses, tmp)
 }
 
 # calculate mean ratings
-responses <- responses %>% mutate(rating_sign = sign(rating))
+responses <- responses %>% 
+  mutate(rating_sign = sign(rating)) %>%
+  filter(index<=50)
 means <- responses %>% group_by(index) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
 responses <- responses %>% inner_join(means)
 
@@ -121,17 +126,19 @@ responses <- responses %>% inner_join(means)
 responses %>% mutate(meansqerr = (mean-rating)^2,
                    error_sign = (mean_sign-rating_sign)^2) %>% 
   group_by(index) %>% 
-  summarise(error_sign = mean(error_sign)) %>% 
-  filter(error_sign ==0)
+  summarise(error_sign = mean(error_sign), meansqerr = mean(meansqerr)) %>% 
+  arrange(desc(error_sign))
 
+responses %>% filter(index==9)
+tweet_df$text[[9]]
 # save responses to disk
 responses %>% 
-  inner_join(sub_sample %>% select(text, status_id), by = 'status_id') %>%
+  inner_join(tweet_df %>% select(text, status_id), by = 'status_id') %>%
   write_csv(paste0('data/ratings/responses', format(Sys.time(), "%d_%m_%Y"),'.csv'))
 ```
 
 ```{r}
-responses %>% filter(user!="rox chiappa") %>%
+responses %>%
   ggplot(aes(factor(sign(mean)), rating))+
     geom_boxplot(aes(color=user))+
     xlab("Sign of Mean Rating")+
@@ -139,5 +146,13 @@ responses %>% filter(user!="rox chiappa") %>%
 ```
 
 ```{r}
-responses %>% mutate(agree = rating_sign==mean_sign) %>% group_by(user) %>% count(agree)
+irr_responses <- responses %>% 
+  select(user, rating, index) %>%
+  #mutate(rating = sign(rating)) %>%
+  spread(user, rating) %>% 
+  select(-index, -`Alina Arseniev-Koehler`)
+kappam.fleiss(irr_responses)
+irr_responses %>% 
+  select(Breon, `Alina Arseniev-Koehler`) %>% 
+  kappa2(weight = 'squared')
 ```

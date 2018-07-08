@@ -73,8 +73,9 @@ shinyUI(fluidPage(
         ),
         mainPanel(
           h4(textOutput("round_info")),
-          uiOutput("tweet_html", inline = TRUE)
-          #p(textOutput("tweet_html"))
+          uiOutput("tweet_html", inline = TRUE),
+          br(),p("Tweet Text:"),br(),
+          p(textOutput("tweet_text"))
           #HTML(uiOutput("tweet_html"))
         )
       )
