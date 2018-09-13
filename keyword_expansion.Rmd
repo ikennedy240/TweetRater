@@ -1,0 +1,29 @@
+---
+title: "Keyword Expansion"
+output: html_notebook
+---
+
+This is a notebook aimed at implementing the keyword expansion algorithm outlined in King et al. 2017: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FMJDCD 
+
+```{r load libraries}
+library(tidyverse)
+```
+
+
+The algorithm, as given in the paper:
+
+1. Define a reference set 'R' (the kinds of docs we're looking for) and a search set 'S' (the set of documents we'll search)
+*We've been working on getting a good reference set. Our search set is the set of all tweets? The set of tweets that have black keywords?*
+
+2. Using a diverse set of classifiers, partition all documents in S into two groups: T and S\T. 
+
+They have a bunch of sub steps here which basically come down to using ML to sort S into docs that the models think fit with R (T) and docs that don't (S\T)
+
+3. Find keywords that best classify documents into either T or S\T
+
+  a. make the set of all possible keywords in S (all that occur more than some k times)
+  b. see how good each keyword is at classifying (using precision and recall scores)
+  c. rank the keywords using some statistics bs
+
+4. Present keywords to the user, allowing them to select the ones that seem good
+5. Now the user can do better keyword searches and perhaps repeat all of the steps

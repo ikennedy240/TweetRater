@@ -8,7 +8,7 @@ token <- readRDS("resources/droptoken.rds")
 db_dir = 'tweetratings'
 suppressMessages(gs_auth(token = "resources/googlesheets_token.rds", verbose = FALSE))
 # which fields get saved
-fieldsAll <- c("user", "rating", "topic", "notes")
+fieldsAll <- c("user", "valence", "rating", "topic", "example", "notes")
 
 # dropbox responses format self-explanatory
 responsesDir <- file.path("responses")
@@ -122,8 +122,8 @@ round = 10
 
 grab_html <- function(round){
   tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=",tweet_df$status_url[round],
-                         "?omit_script=TRUE"))
-  #tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=https://twitter.com/Twiststyl17/status/1011740658464448513"))
+                         "?omit_script=TRUE?hide_media=TRUE?hide_thread=TRUE"))
+  #tweet_info = GET("https://publish.twitter.com/oembed?url=https://twitter.com/Twiststyl17/status/1011740658464448513?omit_script=TRUE?hide_media=TRUE?hide_thread=TRUE")
   tweet_html = content(tweet_info, "parsed")$html
   return(tweet_html)
 }
