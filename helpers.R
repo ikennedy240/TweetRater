@@ -3,23 +3,29 @@ library(rdrop2)
 library(googlesheets)
 library(readr)
 
+
 token <- readRDS("resources/droptoken.rds")
 db_dir = 'tweetratings'
 suppressMessages(gs_auth(token = "resources/googlesheets_token.rds", verbose = FALSE))
 # which fields get saved
-fieldsAll <- c("user", "rating", "topic", "notes")
+fieldsAll <- c("user", "valence", "rating", "topic", "example", "notes")
 
 # dropbox responses format self-explanatory
 responsesDir <- file.path("responses")
 
 
   # from dropbox
-tweet_df = drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, colClasses = 'character')
-  # from local file
+tweet_df <- drop_read_csv(file.path(db_dir, "test_tweets.csv"), dtoken=token, colClasses = 'character')
+print('loaded tweets')
+# from local file
 #tweet_df = read.csv("some_tweets.csv", row.names=1, colClasses = 'character')
 # Password to login for this session
-passwords = gs_title("Sign up for Ian's Tweet Rater (Responses)")
-session_users = gs_read(passwords)
+get_passwords <- function(){
+  passwords = gs_title("Sign up for Ian's Tweet Rater (Responses)")
+  session_users = gs_read(passwords)
+  return(session_users)
+}
+
 
 # Checking user and password agianst df of proper names
 checkuser = function(user, password){
@@ -40,6 +46,7 @@ checkuser = function(user, password){
 
 # Check if there is a file with the user's name, if not, create 
 start_tweet <- function(user){
+  print('running start tweet')
   filename=paste0(tolower(user),".csv")
   path = file.path(db_dir,filename)
   if(drop_exists(path = path, dtoken=token)){
@@ -51,16 +58,15 @@ start_tweet <- function(user){
     drop_upload(filename, db_dir, dtoken=token)
   }
   if(tolower(user)=='noface'){
-    start = 99
+    start = 48
   }
   return(start)
 }
 
-update_tweet_count <- function(user, rounds){
+update_tweet_count <- function(user, end_round){
   filename=paste(tolower(user),".csv",sep='')
   path = file.path(db_dir,filename)
-  new_start = as.integer(drop_read_csv(path, dtoken=token, row.names = 1, colClasses = "character")[2,1])+rounds
-  write.csv(c(user,new_start), filename)
+  write.csv(c(user,end_round), filename)
   drop_upload(file=filename,path=db_dir, dtoken=token)
 }  
 
@@ -116,8 +122,8 @@ round = 10
 
 grab_html <- function(round){
   tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=",tweet_df$status_url[round],
-                         "?omit_script=TRUE"))
-  #tweet_info = GET(paste0("https://publish.twitter.com/oembed?url=https://twitter.com/Twiststyl17/status/1011740658464448513"))
+                         "?omit_script=TRUE?hide_media=TRUE?hide_thread=TRUE"))
+  #tweet_info = GET("https://publish.twitter.com/oembed?url=https://twitter.com/Twiststyl17/status/1011740658464448513?omit_script=TRUE?hide_media=TRUE?hide_thread=TRUE")
   tweet_html = content(tweet_info, "parsed")$html
   return(tweet_html)
 }

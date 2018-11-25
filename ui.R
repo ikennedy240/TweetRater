@@ -54,15 +54,20 @@ shinyUI(fluidPage(
         
         sidebarPanel(
           p("Look at the tweet or tweet conversation. Use the sentiment rater to evaluate
-            the sentiment the tweet presents. If the tweet doesn't show up or look right, 
-            hit 'Save Ratings and Exit' and reload the rater."),
+            the sentiment the tweet presents."),br(),
           checkboxGroupInput("topic",
                        label = h3("Check all applicable topics"),
                        choices = c('Black Men', 'Black Women', 'Black People')),
+          checkboxGroupInput("valence",
+                             label = h3("Check all applicable topics"),
+                             choices = c('Racist', 'Anti-Racist', 'Empowering')),
           radioButtons("rating",
                        label = h3("Sentiment Rating towards black people"),
                        choices = likert,
                        selected = 0),
+          h3("Would this tweet be a good example for turkers?"),
+          checkboxInput("example",
+                        label = "Tweet is a good example"),
           textInput("notes",
                     label = h3("Any notes about your rating here?"),
                     placeholder = "notes"
@@ -73,8 +78,11 @@ shinyUI(fluidPage(
         ),
         mainPanel(
           h4(textOutput("round_info")),
-          uiOutput("tweet_html", inline = TRUE)
-          #p(textOutput("tweet_html"))
+          uiOutput("tweet_html", inline = TRUE),
+          br(),p("Tweet Text:"),br(),
+          p(textOutput("tweet_text")),
+          br(),p("Average Rating:"),br(),
+          p(textOutput("tweet_rating"))
           #HTML(uiOutput("tweet_html"))
         )
       )

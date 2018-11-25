@@ -1,0 +1,112 @@
+---
+title: "Keyword Expansion"
+output: html_notebook
+---
+
+This is a notebook aimed at implementing the keyword expansion algorithm outlined in King et al. 2017: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/FMJDCD 
+
+```{r load libraries}
+library(tidyverse)
+library(twitteR)
+library(tidytext)
+library(naivebayes)
+```
+
+
+The algorithm, as given in the paper:
+
+1. Define a reference set 'R' (the kinds of docs we're looking for) and a search set 'S' (the set of documents we'll search)
+*We've been working on getting a good reference set. Our search set is the set of all tweets? The set of tweets that have black keywords? For now I'm using the full set of tweets I downloaded previously*
+
+S, then is the full tweet set, minus tweets that we've rated as about black people:
+```{r}
+full_tweet_set <- read_csv('data/tweets/full_tweet_set.csv', 
+         col_types = cols(user_id = col_character(),
+                          status_id = col_character(),
+                          reply_to_status_id = col_character(),
+                          reply_to_user_id = col_character(),
+                          mentions_user_id = col_character(),
+                          quoted_status_id = col_character(),
+                          quoted_user_id = col_character(),
+                          retweet_status_id = col_character(),
+                          retweet_user_id = col_character()))
+
+rated_set = data_frame(
+  index = col_integer(),
+  user = col_character(),
+  rating = col_integer(),
+  topic = col_character(),
+  notes = col_character(),
+  status_id = col_character(),
+  screen_name = col_character(),
+  timestamp = col_character())
+for(file in list.files('data/ratings/old_responses')){
+  print(file)
+  rated_set = rbind(rated_set,read_csv(paste0('data/ratings/old_responses/',file),
+                               col_types = cols_only(
+                                 index = col_integer(),
+                                  user = col_character(),
+                                  rating = col_integer(),
+                                  topic = col_character(),
+                                  notes = col_character(),
+                                  status_id = col_character(),
+                                  screen_name = col_character(),
+                                  timestamp = col_character())))
+}
+r_set <- rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0) %>% inner_join(full_tweet_set, by = 'status_id') %>% select(-rating)
+rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0)
+rated_set %>% filter(topic!='NULL', user=='Breon')
+names(full_tweet_set)
+```
+
+
+2. Using a diverse set of classifiers, partition all documents in S into two groups: T and S\T. 
+
+They have a bunch of sub steps here which basically come down to using ML to sort S into docs that the models think fit with R (T) and docs that don't (S\T)
+
+*I'm acutally just going to use naive bayes and logistic regression here. If a text gets a 1 in either of those, it gets to be in the T set*
+
+first we'll need to prepare our labeled set
+```{r prepare data}
+# make a single labled df with text, status_id, and label
+labeled_texts <- full_tweet_set %>% select(text, status_id) %>% mutate(class_label = ifelse(status_id %in% r_set$status_id, 1,0))
+labeled_texts <- labeled_texts %>% mutate(text = str_replace_all(text, '(http)?(www)?\\S*(\\.com|\\.net|\\.gov|\\.be|\\.org)\\S*', ''),
+                              text = str_replace_all(text,"(\\w+)\\W|/(\\w+)","\\1 \\2"),
+                              text = str_remove(text, 'https|t.co')) # separate words joined by non-word characters
+
+labeled_tokenized <- labeled_texts %>% 
+  unnest_tokens(word,text, strip_punct = TRUE) %>% # tokenize, remove punctuation
+  filter(!nchar(word) < 3) %>% # remove short words
+  anti_join(stop_words, by = "word") # remove stop words
+labeled_tokenized <- inner_join(labeled_tokenized, labeled_tokenized %>% count(word) %>% filter(n>5), by = 'word') %>% 
+  select(-n) %>% 
+  mutate(present = 1) %>% 
+  distinct(status_id, word, .keep_all = TRUE) %>% 
+  spread(word, present, fill = 0) %>% select(status_id, class_label, everything())
+
+```
+
+Cool, now we'll try some NB action
+
+```{r}
+x <- as.data.frame(select(labeled_tokenized, -status_id, -class_label))
+y <- factor(labeled_tokenized$class_label)
+nb_model <- naive_bayes(x,y)
+```
+
+and some logistic regression
+
+```{r}
+log_model <- glm.fit(x,y,family = binomial())
+```
+
+
+
+3. Find keywords that best classify documents into either T or S\T
+
+  a. make the set of all possible keywords in S (all that occur more than some k times)
+  b. see how good each keyword is at classifying (using precision and recall scores)
+  c. rank the keywords using some statistics bs
+
+4. Present keywords to the user, allowing them to select the ones that seem good
+5. Now the user can do better keyword searches and perhaps repeat all of the steps
