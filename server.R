@@ -52,6 +52,7 @@ shinyServer(
     # Initialize Start Tweet
     output$tweet_html = renderText(grab_html(values$round))
     output$tweet_text = renderText(tweet_df$text[[values$round]])
+    output$tweet_rating = renderText(tweet_df$rating[[values$round]])
     values$df <- NULL
     output$goodbye_image = renderText('<img src="https://media.giphy.com/media/osjgQPWRx3cac/giphy.gif" height="100" width="100">')
     # Tell user where she is

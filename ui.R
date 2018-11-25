@@ -80,7 +80,9 @@ shinyUI(fluidPage(
           h4(textOutput("round_info")),
           uiOutput("tweet_html", inline = TRUE),
           br(),p("Tweet Text:"),br(),
-          p(textOutput("tweet_text"))
+          p(textOutput("tweet_text")),
+          br(),p("Average Rating:"),br(),
+          p(textOutput("tweet_rating"))
           #HTML(uiOutput("tweet_html"))
         )
       )

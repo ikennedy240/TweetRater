@@ -158,4 +158,19 @@ kappam.fleiss(irr_responses)
 irr_responses %>% 
   select(ian, Savannah) %>% 
   kappa2(weight = 'squared')
+
+test_tweets <- rated_set %>% filter(topic != 'NULL') %>% group_by(status_id) %>% summarise(screen_name = first(screen_name), rating = mean(rating)) %>% inner_join(full_tweet_set, by = 'status_id')
+
+write_csv(test_tweets, 'data/tweets/test_tweets.csv')
 ```
+
+Construct list for turkers
+```{r}
+list <- read_csv('data/tweets/racist_tweets.csv') %>% transmute(status_id = as.character(status_id))
+list <- responses %>% filter(example == 'TRUE') %>% select(status_id) %>% bind_rows(list)
+
+turker_tweets <- lookup_statuses(list$status_id, parse = TRUE)
+
+write_csv(flatten(turker_tweets) %>% sample_frac(1), "test_tweets.csv")
+```
+

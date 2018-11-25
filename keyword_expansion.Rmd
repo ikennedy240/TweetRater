@@ -53,7 +53,10 @@ for(file in list.files('data/ratings/old_responses')){
                                   screen_name = col_character(),
                                   timestamp = col_character())))
 }
-r_set <- rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating<0) %>% inner_join(full_tweet_set, by = 'status_id') %>% select(-rating)
+r_set <- rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0) %>% inner_join(full_tweet_set, by = 'status_id') %>% select(-rating)
+rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0)
+rated_set %>% filter(topic!='NULL', user=='Breon')
+names(full_tweet_set)
 ```
 
 
