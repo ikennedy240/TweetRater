@@ -172,5 +172,17 @@ list <- responses %>% filter(example == 'TRUE') %>% select(status_id) %>% bind_r
 turker_tweets <- lookup_statuses(list$status_id, parse = TRUE)
 
 write_csv(flatten(turker_tweets) %>% sample_frac(1), "test_tweets.csv")
+
+old_responses %>% group_by(status_id) %>% summarise_if(is.numeric, mean) %>% arrange(rating) %>% filter(rating>-.67)
+
+
+full_tweet_set[full_tweet_set$status_id=='1015970747712405505',]$text
+```
+
+```{r}
+for(i in 1:length(turker_tweets$text)){
+  cat(paste("\n\n Example Tweet #",as.character(i), '\n'))
+  cat(turker_tweets$text[25-i])
+}
 ```
 

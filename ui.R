@@ -1,31 +1,50 @@
 library(shinyjs)
-
-source('helpers.R')
+source('helpers_local.R')
 shinyUI(fluidPage(
   useShinyjs(),
   div(
-    id = "login_page",
+    id = "demo_page", 
     titlePanel("Welcome to the tweet rater!"),
     br(),
     sidebarLayout(
       
       sidebarPanel(
-        h2("Login"),
-        p("Please use the user name and password from your invite email to login."),
-        hidden(
-          div(
-            id = "login_error",
-            span("Your user name is invalid. Please check for typos and try again.
-                 If you're really sure about them, email Ian at", style = "color:red"),
-            a("ikennedy@uw.edu", href="mailto:ikennedy@uw.edu")
-          )
-        )
+        h2("Welcome"),
+        p("Please complete the brief demographic survey to begin")
       ),
       
       mainPanel(
-        textInput("user", "Name", ""),
-        #textInput("password", "Password", ""),
-        actionButton("login", "Begin", class = "btn-primary")
+        # this is where we're collecting demographic information
+        # race
+        p("Check all boxes which describe you or that you self-identify as"),
+        checkboxGroupInput("race_ethnicity",
+                           label = h3("Check all applicable groups"),
+                           choices = c('Black/African American', 
+                                       'Latino/Hispanic/Spanish', 
+                                       'White/Caucasian/European',
+                                       'Asian/Pacific Islander',
+                                       'Native American/American Indian',
+                                       'Other')),
+        # nationality
+        p("Optionally, provide a national/ethnic heritage, for instance 'Kenyan', 'Italian' or 'Peruvian'"),
+        textInput("nationality", "Heritage", ""),
+        # gender
+        p("Indicate your gender identification"),
+        checkboxGroupInput("gender","Gender",
+                           choices = c('Female', 
+                                       'Male', 
+                                       'Gender-Fluid/Non-binary',
+                                       'Other')),
+        # age
+        p("Enter your age"),
+        selectInput("age", "Age", 18:121),
+        # state of residence
+        p("In which state do you primarily reside?"),
+        selectInput('state', NULL, state.abb),
+        # comment space
+        p("Any further comments or info you'd like us to know?"),
+        textInput("comment", "Comment", ""),
+        actionButton("complete", "Begin", class = "btn-primary")
       )
     )
   ),
@@ -65,16 +84,7 @@ shinyUI(fluidPage(
                        label = h3("Sentiment Rating towards black people"),
                        choices = likert,
                        selected = 0),
-          h3("Would this tweet be a good example for turkers?"),
-          checkboxInput("example",
-                        label = "Tweet is a good example"),
-          textInput("notes",
-                    label = h3("Any notes about your rating here?"),
-                    placeholder = "notes"
-                    ),
-          actionButton("submit", "Submit", class = "btn-primary"),
-          br(),br(),
-          actionButton("finish_rating", "Save Ratings and Exit", class = "btn-primary")
+          actionButton("submit", "Submit", class = "btn-primary")
         ),
         mainPanel(
           h4(textOutput("round_info")),
