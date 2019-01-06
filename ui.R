@@ -1,5 +1,5 @@
 library(shinyjs)
-source('helpers_local.R')
+source('helpers_db.R')
 shinyUI(fluidPage(
   useShinyjs(),
   div(
@@ -52,12 +52,15 @@ shinyUI(fluidPage(
   hidden(
     div( id = "instructions",
          h3("Instructions"),
-         p("You will be shown a series of tweets. For each tweet, please rate the level of anti-black
-           racism you feel is present in that tweet. The rating is meant to be based on your subjective
-           reading, not some objective standard. You should also consider the overall tone of the tweet and, if possible,
-           the context. If it was tweeted in reply to another tweet, that tweet will appear about the key tweet. 
-           Please rate the bottom tweet only, as in the example below. You can record any notes you have about the text
-           as well. Make sure you click 'Save Ratings and Exit' to record your responses."),
+         p("You will be shown a series of tweets. For each tweet, there are THREE things we'd like you to rate
+           ** First, indicate if Black men, Black women, or Black people are included as topics in the tweet. Check these
+           boxes if you think the tweet concerns one of those groups, even if the tweet doesn't use the word 'black'.
+           ** Next, please inidcate if you think the tweet is 'racist', 'anti-racist', or 'empowering.'
+           ** Finally, please rate the level of anti-black racism you feel is present in that tweet. 
+           The ratings are meant to be based on your subjective reading, not some objective standard. 
+           You should also consider the overall tone of the tweet and, if possible, the context. 
+           If it was tweeted in reply to another tweet, that tweet may appear about the key tweet. 
+           Please rate the bottom tweet only, as in the example below. Make sure you click 'Save Ratings and Exit' to record your responses."),
          actionButton("confirm", label = "Ok, I got it... let's start"),
          img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive")
          #add instructions vis tweet context
@@ -108,11 +111,11 @@ shinyUI(fluidPage(
         
         sidebarPanel(
           uiOutput("goodbye_image"),
-          textOutput("end_message")
+          textOutput("end_message"),
+          p("For more information about this study, you can contact us at ikennedy@uw.edu")
         ),
         
         mainPanel(
-          uiOutput('response_form')
         )
       )
     )

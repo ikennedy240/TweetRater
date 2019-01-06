@@ -25,7 +25,7 @@ shinyServer(
       # If credentials are valid push user into experiment
       if(user_ok){
         shinyjs::hide("demo_page")
-        shinyjs::show("form")
+        shinyjs::show("instructions")
         
         # Save username to write into data file
         output$username <- renderText({user})}
@@ -88,9 +88,7 @@ shinyServer(
         # })
         #save the data
         saveData(values$df)
-        output$end_message = renderText(paste0("You're all done with this set!. You rateed ", values$round-1, ' Tweets, Thank you!\n Your completion code is: ', completion_code))
-        output$response_form = renderText('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSclOxuQ5dEX0MYDOhobDiWz1wndGUp6Uf74fuv_6KEQgCaIrw/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>')
-          
+        output$end_message = renderText(paste0("You're all done with this set!. You rated ", values$round-1, ' Tweets, Thank you!\n Your completion code is: ', completion_code))
         # Say good-bye
         hide(id = "form")
         show(id = "end")
@@ -103,10 +101,10 @@ shinyServer(
     # When it is called, it creates a vector of data.
     # This will be a row added to values$df - one for each round.
     #
-    # Gather all the form inputs (and add timestamp)
+    # Gather all the form inputs 
     formData <- reactive({
       data <- sapply(fieldsAll, function(x) input[[x]])
-      data <- c(index = values$round, user = user, data, status_id = paste0('"',tweet_df$status_id[values$round],'"'), screen_name = tweet_df$screen_name[values$round])
+      data <- c(index = values$round, user = user, data, status_id = tweet_df$status_id[values$round], screen_name = tweet_df$screen_name[values$round])
       data <- t(data)
       data
     })

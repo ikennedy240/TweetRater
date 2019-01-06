@@ -1,10 +1,9 @@
 library(httr)
-#library(rdrop2)
-library(googlesheets)
-library(googledrive)
+library(rdrop2)
 library(readr)
 
-gs_auth(token = 'resources/gs_token.rds')
+drop_auth(rdstoken = 'resources/droptoken.rds')
+
 # Helper functions
 humanTime <- function() format(Sys.time(), "%d-%m-%Y-%H-%M-%S")
 
@@ -35,15 +34,18 @@ likert = list("Very Negative" = -3,
               "Very Positive" = 3)
 
 # which fields get saved
-fieldsAll <- c('race_ethnicity', 'nationality', 'gender', 'age', "comment", "valence", "rating", "topic", "example", "notes")
+fieldsAll <- c('race_ethnicity', 'nationality', 'gender', 'age', 'state', "comment", "valence", "rating", "topic", "example", "notes")
 
 # set directory to store responses
 responsesDir <- file.path("responses")
-db_dir <- file.path("db")
+db_dir <-  file.path('tweetratings','TestHiT1')
+if(!drop_exists(db_dir)){
+  drop_create(db_dir)
+}
+tweet_df <- drop_read_csv(file.path(db_dir, "turker_tweets.csv"), colClasses = 'character')
 # from local file
-tweet_dir <- file.path("turker_tweets.csv")
-completion_code <- digest::digest(tweet_dir)
-tweet_df = read.csv("turker_tweets.csv", row.names=NULL, colClasses = 'character')
+completion_code <- digest::digest(db_dir)
+#tweet_df = read.csv("turker_tweets.csv", row.names=NULL, colClasses = 'character')
 #Password to login for this session
 
 
@@ -97,7 +99,9 @@ saveData <- function(data) {
                       humanTime(),
                       digest::digest(data))
   write.csv(x = data, file = file.path(responsesDir, fileName),
-            row.names = FALSE, quote = TRUE)
+            row.names = FALSE, quote = c(1:15))
+  drop_upload(file = file.path(responsesDir, fileName), 
+              path = file.path(db_dir,responsesDir))
 }
 
 epochTime <- function() {
