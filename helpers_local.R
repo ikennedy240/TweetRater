@@ -46,7 +46,6 @@ completion_code <- digest::digest(tweet_dir)
 tweet_df = read.csv("turker_tweets.csv", row.names=NULL, colClasses = 'character')
 #Password to login for this session
 
-
 # give user a random string
 set_user <- function(){
   user <- digest::digest(humanTime()) # gives the user a hash based on the date and time
@@ -58,6 +57,7 @@ set_user <- function(){
   write_lines(user, 'users.txt', append = TRUE)
   return(user)
 }
+
 user <- set_user()
 
 
@@ -119,5 +119,3 @@ likert = list("Very Negative" = -3,
               "Mildly Positive" = 1,
               "Somewhat Postive" = 2,
               "Very Positive" = 3)
-
-
