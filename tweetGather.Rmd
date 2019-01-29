@@ -9,6 +9,7 @@ library(tidyverse)
 library(xml2)
 library(rtweet)
 library(irr)
+library(knitr)
 ```
 
 
@@ -18,7 +19,7 @@ library(irr)
 # this list has the list of terms for black folks from Flores 2017 plus some extra terms 
 # which we think might be common anti-black slurs. Once we have a tool for separating out 
 # tweets that aren't about black folks, we could try adding more terms
-term_list <- read_lines('resources/edited_term_list_2')
+term_list <- read_lines('resources/term_list_3')
 ```
 
 # Import current full tweet set and add some new tweets
@@ -74,6 +75,17 @@ write_as_csv(tweet_sample,
 
 ```
 
+```{r get new tweets with term 'racist' in reply to other twees}
+reply_sample <- search_tweets(q='racist', n=1000, include_rts = FALSE, lang = "en")
+in_reply_to <- reply_sample %>% filter(!is.na(reply_to_screen_name), str_detect(text, 'racist'))
+replied_to <- lookup_statuses(in_reply_to$reply_to_status_id, parse = TRUE, token = NULL)
+replied_to %>% filter(str_detect(text, regex(paste0(term_list, collapse = '|'))))
+replied_to$text
+write_as_csv(replied_to, 
+             paste0('data/tweets/reply_sample_',format(Sys.time(), "%d_%m_%Y"),'.csv'), 
+             prepend_ids = FALSE)
+```
+
 
 ```{r make new sample subset}
 #make a random subset of k tweets
@@ -96,7 +108,7 @@ full_tweet_set %>% count(sample_date)
 
 ```{r process responses}
 # grab the list of files
-files <- list.files('data/ratings/responses')
+files <- list.files('data/ratings/hit1')
 # dart an empty data frame
 responses = data_frame(
   index = col_integer(),
@@ -110,17 +122,18 @@ responses = data_frame(
 )
 # read all the files
 for(file in files){
-  tmp <- read_csv(paste0('data/ratings/responses/',file), 
-                  col_types = cols(status_id = col_character()))
+  tmp <- read_csv(paste0('data/ratings/hit1/',file), 
+                  col_types = cols(status_id = col_character())) %>% mutate(user = substr(file,28,52))
   responses <- rbind(responses, tmp)
 }
 
 # calculate mean ratings
-responses <- responses %>% 
-  mutate(rating_sign = sign(rating)) %>%
-  filter(index<=60)
+responses <- responses  %>% 
+  inner_join(turker_tweets %>% select(text, screen_name), by = 'screen_name') %>% 
+  mutate(rating = ifelse(valence == 'Anti-Racist'|valence=='Empowering', abs(rating), rating), rating_sign = sign(rating))
 means <- responses %>% group_by(index) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
-responses <- responses %>% inner_join(means)
+adj_means <- responses %>% inner_join(means) %>% filter(sign(rating)==sign(mean)) %>% group_by(index) %>% summarise(adj_mean = mean(rating))
+responses <- responses %>% inner_join(means) %>% inner_join(adj_means)
 
 # look at the mean errors
 responses %>% mutate(meansqerr = (mean-rating)^2,
@@ -130,38 +143,66 @@ responses %>% mutate(meansqerr = (mean-rating)^2,
   arrange(desc(error_sign))
 
 responses %>% group_by(user) %>% count()
-tweet_df$text[[34]]
+cat(turker_tweets$text[[22]])
 
-responses %>% filter(index==34)
+responses %>% mutate(rating = ifelse(valence == 'Anti-Racist', abs(rating), rating)) %>% select(index,user, valence, rating_sign, mean) %>% filter(index==22)
+
 
 # save responses to disk
-responses %>% 
-  inner_join(tweet_df %>% select(text, status_id), by = 'status_id') %>%
+responses %>%
   write_csv(paste0('data/ratings/responses', format(Sys.time(), "%d_%m_%Y"),'.csv'))
 ```
 
 ```{r}
-responses %>%
+responses %>% 
   ggplot(aes(factor(sign(mean)), rating))+
-    geom_boxplot(aes(color=user))+
+    geom_boxplot(aes(color=race_ethnicity))+
     xlab("Sign of Mean Rating")+
-    ylab("User Rating")
+    ylab("User Rating")+
+  theme(legend.title=element_blank())
 ```
 
 ```{r}
+ratings_report <- function(responses){
+  # text and mean rating for all tweets
+  print(kable(responses %>% group_by(index) %>% summarise(text = substr(str_remove_all(first(text),'\\n'),1,50), mean = first(mean), adj_mean = round(first(adj_mean),1))))
+  # text and detailed rating for each tweet
+  for(i in 1:length(unique(responses$index))){
+    print(paste("Tweet number", i, "had an average rating of", responses$mean[[i]], "and an adjusted average of",responses$adj_mean[[i]]))
+    cat('\n\n\n')
+    cat(responses$text[[i]])
+    print(kable(responses %>% filter(index == i) %>% mutate(user = factor(user, labels = c(1:10))) %>% select(user:state, valence:topic)))
+    cat('\n\n\n')
+  }
+}
+```
+
+
+```{r}
+
+capture.output(ratings_report(responses), file = 'ratings_report.txt', type = 'output')
+```
+
+
+```{r}
 irr_responses <- responses %>% 
+  filter(sd<1.5) %>%
   select(user, rating, index) %>%
-  #mutate(rating = sign(rating)) %>%
+  mutate(rating = sign(rating)) %>%
   spread(user, rating) %>% 
   select(-index)
-kappam.fleiss(irr_responses)
+x <- kappam.fleiss(irr_responses)
 irr_responses %>% 
   select(ian, Savannah) %>% 
   kappa2(weight = 'squared')
 
 test_tweets <- rated_set %>% filter(topic != 'NULL') %>% group_by(status_id) %>% summarise(screen_name = first(screen_name), rating = mean(rating)) %>% inner_join(full_tweet_set, by = 'status_id')
 
-write_csv(test_tweets, 'data/tweets/test_tweets.csv')
+
+#write_csv(test_tweets, 'data/tweets/test_tweets.csv')
+kable(responses %>% group_by(index) %>% summarize(sd = sd(rating)) %>% arrange(desc(sd)))
+summary(responses$sd)
+x$value
 ```
 
 Construct list for turkers
@@ -172,5 +213,30 @@ list <- responses %>% filter(example == 'TRUE') %>% select(status_id) %>% bind_r
 turker_tweets <- lookup_statuses(list$status_id, parse = TRUE)
 
 write_csv(flatten(turker_tweets) %>% sample_frac(1), "test_tweets.csv")
+
+old_responses %>% group_by(status_id) %>% summarise_if(is.numeric, mean) %>% arrange(rating) %>% filter(rating>-.67)
+
+
+full_tweet_set[full_tweet_set$status_id=='1015970747712405505',]$text
+```
+
+```{r}
+for(i in 1:length(turker_tweets$text)){
+  cat(paste("\n\n Example Tweet #",as.character(i), '\n'))
+  cat(turker_tweets$text[25-i])
+}
+View(responses %>% filter(user=='c4009c1b18f5e0992b8de97f3') %>% select(valence, rating, mean, text))
+```
+
+```{r dl prep}
+# build full tweet set
+tweet_loc <- 'data/tweets'
+files <- list.files(tweet_loc)
+files <- files[str_which(files, "sample")]
+col_types = cols(status_id = col_character(), user_id = col_character(), created_at = col_datetime(), display_text_width = col_integer())
+full_tweet_text <- read_csv(file.path(tweet_loc, files[1]), n_max = 0, guess_max = 100, col_types = col_types)
+for(file in files){
+  full_tweet_text <- bind_rows(full_tweet_text, read_csv(file.path(tweet_loc,file), col_types = col_types))
+}
 ```
 

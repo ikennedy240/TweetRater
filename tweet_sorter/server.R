@@ -2,12 +2,9 @@ library(shiny)
 require(digest)
 require(dplyr)
 
-#source('helpers.R')
-#print('loaded helpers')
 shinyServer(
   function(input, output, session) {
     
-    output$testnumber = renderText("Tweet Count and Save Data")
     ##########################################################
     ########### PART I: LOGIN ################################
     ##########################################################
@@ -54,7 +51,32 @@ shinyServer(
     })
     ## This is the main experiment handler
     #Observe the finish button, if cliked, end experiment
-  
+    observeEvent(input$finish_rating, {
+      disable("submit")
+      disable("finish_rating")
+      # Call function formData() (see below) to record submitted response
+      newLine <- isolate(formData())
+      
+      # Write newLine into data frame df
+      isolate({
+        values$df <- rbind(values$df, newLine)
+      })
+      #save the data
+      saveData(values$df)
+      if(values$round==1){
+        output$end_message = renderText(paste0("You've rated ", values$round, ' Tweet, Thank you ', input$user,'!'))
+      } else{
+        output$end_message = renderText(paste0("You've rated ", values$round, ' Tweets, Thank you ', input$user,'!'))
+      }
+      output$response_form = renderText("See you next time!")
+      if(values$round>=dim(tweet_df)[[1]]){
+        output$response_form = renderText('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSclOxuQ5dEX0MYDOhobDiWz1wndGUp6Uf74fuv_6KEQgCaIrw/viewform?embedded=true" width="700" height="520" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>')
+      }
+      # Say good-bye
+      hide(id = "form")
+      show(id = "end")
+      
+    })
     # Observe the submit button, if clicked... FIRE
     observeEvent(input$submit, {
       disable("submit")
