@@ -20,43 +20,15 @@ The algorithm, as given in the paper:
 
 S, then is the full tweet set, minus tweets that we've rated as about black people:
 ```{r}
-full_tweet_set <- read_csv('data/tweets/full_tweet_set.csv', 
-         col_types = cols(user_id = col_character(),
-                          status_id = col_character(),
-                          reply_to_status_id = col_character(),
-                          reply_to_user_id = col_character(),
-                          mentions_user_id = col_character(),
-                          quoted_status_id = col_character(),
-                          quoted_user_id = col_character(),
-                          retweet_status_id = col_character(),
-                          retweet_user_id = col_character()))
+full_tweet_set <- read_csv('data/tweets/full_tweet_sample.csv', 
+         col_types = cols(.default = 'c'))
+labels <- read_csv('tweet_sorter/responses/ian.csv', 
+         col_types = cols(status_id = col_character()))
 
-rated_set = data_frame(
-  index = col_integer(),
-  user = col_character(),
-  rating = col_integer(),
-  topic = col_character(),
-  notes = col_character(),
-  status_id = col_character(),
-  screen_name = col_character(),
-  timestamp = col_character())
-for(file in list.files('data/ratings/old_responses')){
-  print(file)
-  rated_set = rbind(rated_set,read_csv(paste0('data/ratings/old_responses/',file),
-                               col_types = cols_only(
-                                 index = col_integer(),
-                                  user = col_character(),
-                                  rating = col_integer(),
-                                  topic = col_character(),
-                                  notes = col_character(),
-                                  status_id = col_character(),
-                                  screen_name = col_character(),
-                                  timestamp = col_character())))
-}
-r_set <- rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0) %>% inner_join(full_tweet_set, by = 'status_id') %>% select(-rating)
-rated_set %>% group_by(status_id) %>% summarise(rating = mean(rating)) %>% filter(rating>0)
-rated_set %>% filter(topic!='NULL', user=='Breon')
-names(full_tweet_set)
+examples <- labels %>% filter(example==T) %>% inner_join(full_tweet_set, by = 'status_id')
+not_examples <- labels %>% filter(example==F) %>% inner_join(full_tweet_set, by = 'status_id')
+black_folks <- labels %>% filter(blackmen==T|blackwomen==T|blackpeople==T) %>% inner_join(full_tweet_set, by = 'status_id')
+not_black_folks <- labels %>% filter(blackmen==F&blackwomen==F&blackpeople==F) %>% inner_join(full_tweet_set, by = 'status_id')
 ```
 
 
@@ -69,28 +41,37 @@ They have a bunch of sub steps here which basically come down to using ML to sor
 first we'll need to prepare our labeled set
 ```{r prepare data}
 # make a single labled df with text, status_id, and label
-labeled_texts <- full_tweet_set %>% select(text, status_id) %>% mutate(class_label = ifelse(status_id %in% r_set$status_id, 1,0))
-labeled_texts <- labeled_texts %>% mutate(text = str_replace_all(text, '(http)?(www)?\\S*(\\.com|\\.net|\\.gov|\\.be|\\.org)\\S*', ''),
-                              text = str_replace_all(text,"(\\w+)\\W|/(\\w+)","\\1 \\2"),
-                              text = str_remove(text, 'https|t.co')) # separate words joined by non-word characters
+labeled_texts <- full_tweet_set %>% select(text, status_id) %>% filter(status_id %in% labels$status_id) %>% mutate(class_label = ifelse(status_id %in% black_folks$status_id, 1,0))
 
-labeled_tokenized <- labeled_texts %>% 
+prep_texts_only <- function(df){
+df <- df %>% mutate(
+  text = str_replace_all(text, '(http)?(www)?\\S*(\\.com|\\.net|\\.gov|\\.be|\\.org)\\S*', ''),
+  text = str_replace_all(text,"(\\w+)\\W|/(\\w+)","\\1 \\2"),
+  text = str_remove(text, 'https|t.co')) # separate words joined by non-word characters
+
+df_toke <- df %>% 
   unnest_tokens(word,text, strip_punct = TRUE) %>% # tokenize, remove punctuation
   filter(!nchar(word) < 3) %>% # remove short words
   anti_join(stop_words, by = "word") # remove stop words
-labeled_tokenized <- inner_join(labeled_tokenized, labeled_tokenized %>% count(word) %>% filter(n>5), by = 'word') %>% 
+df_toke <- inner_join(df_toke, df_toke %>% count(word) %>% filter(n>2), by = 'word') %>% 
   select(-n) %>% 
   mutate(present = 1) %>% 
   distinct(status_id, word, .keep_all = TRUE) %>% 
-  spread(word, present, fill = 0) %>% select(status_id, class_label, everything())
-
+  spread(word, present, fill = 0)
+if(exists('df_toke$class_label')){
+  df_toke <- df_toke %>% select(status_id, class_label, everything()) 
+} else {
+  df_toke <- df_toke %>% select(status_id, everything()) 
+}
+return(df_toke)
+}
 ```
 
 Cool, now we'll try some NB action
 
 ```{r}
 x <- as.data.frame(select(labeled_tokenized, -status_id, -class_label))
-y <- factor(labeled_tokenized$class_label)
+y <- labeled_tokenized$class_label
 nb_model <- naive_bayes(x,y)
 ```
 
@@ -100,6 +81,32 @@ and some logistic regression
 log_model <- glm.fit(x,y,family = binomial())
 ```
 
+
+```{r}
+library(glmnet)
+cv.out <- cv.glmnet(as.matrix(x),y,alpha=1,family='binomial',type.measure = 'mse' )
+plot(cv.out)
+coef(cv.out)
+tables(nb_model)
+x = NULL
+for(tab in nb_model$tables){
+  x <- bind_rows(x, tibble(word = names(attributes(tab)$dimnames)[[1]], prob = tab[1,2]))
+}
+x %>% arrange(desc(prob))
+```
+
+```{r}
+# Ok, let's label some unlabeled texts:
+texts_sample <- full_tweet_set %>% select(text, status_id) %>% sample_n(4000)
+sample_toke <- prep_texts_only(texts_sample) %>% mutate(class_label = 3) %>% full_join(labeled_tokenized %>% filter(class_label == 2)) %>% select(names(labeled_tokenized)) %>% mutate_all(funs(replace(., is.na(.), 0)))
+joined_toke <- bind_rows(sample_toke, labeled_tokenized)
+joined_toke <- joined_toke %>% mutate(predict = as.numeric(predict(nb_model, newdata = joined_toke %>% select(-status_id, -class_label))))
+for(tweet in full_tweet_set %>% filter(status_id %in% joined_toke$status_id[joined_toke$predict==1]) %>% select(text)){
+  print(tweet)
+}
+word_density <- joined_toke %>% select(-status_id, -class_label)  %>% group_by(predict) %>% summarise_all(mean) %>% gather(word, prevalence, -predict)
+View(word_density %>% spread(predict, prevalence) %>% mutate(diff = `2` - `1`) %>% arrange(desc(abs(diff))))
+```
 
 
 3. Find keywords that best classify documents into either T or S\T

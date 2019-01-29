@@ -228,3 +228,15 @@ for(i in 1:length(turker_tweets$text)){
 View(responses %>% filter(user=='c4009c1b18f5e0992b8de97f3') %>% select(valence, rating, mean, text))
 ```
 
+```{r dl prep}
+# build full tweet set
+tweet_loc <- 'data/tweets'
+files <- list.files(tweet_loc)
+files <- files[str_which(files, "sample")]
+col_types = cols(status_id = col_character(), user_id = col_character(), created_at = col_datetime(), display_text_width = col_integer())
+full_tweet_text <- read_csv(file.path(tweet_loc, files[1]), n_max = 0, guess_max = 100, col_types = col_types)
+for(file in files){
+  full_tweet_text <- bind_rows(full_tweet_text, read_csv(file.path(tweet_loc,file), col_types = col_types))
+}
+```
+
