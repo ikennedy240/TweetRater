@@ -127,6 +127,7 @@ for(file in files){
   responses <- rbind(responses, tmp)
 }
 
+responses <- full_ratings_set
 # calculate mean ratings
 responses <- responses  %>% 
   inner_join(turker_tweets %>% select(text, screen_name), by = 'screen_name') %>% 
@@ -179,7 +180,6 @@ ratings_report <- function(responses){
 
 
 ```{r}
-
 capture.output(ratings_report(responses), file = 'ratings_report.txt', type = 'output')
 ```
 
@@ -238,5 +238,10 @@ full_tweet_text <- read_csv(file.path(tweet_loc, files[1]), n_max = 0, guess_max
 for(file in files){
   full_tweet_text <- bind_rows(full_tweet_text, read_csv(file.path(tweet_loc,file), col_types = col_types))
 }
+```
+
+
+```{r}
+full_ratings_set %>% group_by(status_id) %>% mutate(rating = as.numeric(rating)) %>% summarise(mean = mean(rating), sd=sd(rating)) %>% mutate(zscore = scale(mean), sig = abs(mean)>=1.96*sd)
 ```
 

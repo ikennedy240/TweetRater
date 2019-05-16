@@ -1,0 +1,70 @@
+---
+title: "Preliminary Analysis of Tweets"
+output: html_notebook
+---
+
+
+```{r load libraries}
+library(httr)
+library(tidyverse)
+library(xml2)
+library(rtweet)
+library(irr)
+library(knitr)
+```
+
+
+```{r use this to load all of the ratings}
+source('collectResponses.R')
+```
+
+
+
+```{r create basic summaries of tweets}
+# read rated tweets 
+rated_tweets <- read_csv("resources/rater_resources/rated_tweets.csv", col_types = cols(.default = 'c'))
+# join responses with rated tweets and ajust ratings for racist and empowering valences
+responses <- full_ratings_set  %>% mutate(rating = if_else(is.na(rating), 0, as.numeric(rating))) %>%
+  inner_join(rated_tweets %>% select(text, status_id), by = "status_id") %>% 
+  mutate(rating = ifelse(!is.na(valence)&(valence == 'Anti-Racist'|valence=='Empowering'), abs(rating), rating), rating_sign = sign(rating))
+# get means for each tweet
+means <- responses %>% group_by(status_id) %>% summarise(mean = mean(rating), sd = sd(rating), mean_sign = mean(rating_sign))
+# get adjusted means (which exclude raters who are both white and disagreed with the mean rating)
+adj_means <- responses %>% inner_join(means) %>% 
+  filter(!str_detect(race_ethnicity, "White")|sign(rating)==sign(mean)) %>% group_by(status_id) %>% 
+  summarise(adj_mean = mean(rating))
+responses <- responses %>% inner_join(means) %>% inner_join(adj_means)
+
+# look at the mean errors
+responses %>% mutate(meansqerr = (mean-rating)^2,
+                   error_sign = (mean_sign-rating_sign)^2) %>% 
+  group_by(status_id) %>% 
+  summarise(error_sign = mean(error_sign), meansqerr = mean(meansqerr)) %>% 
+  arrange(desc(error_sign))
+```
+
+
+```{r}
+example <- '1087018669735997441'
+
+cat(rated_tweets$text[[which(rated_tweets$status_id==example)]])
+
+responses %>% select(status_id,race_ethnicity, valence, rating, mean) %>% filter(status_id==example)
+```
+
+
+```{r}
+responses %>% 
+  ggplot(aes(factor(sign(mean)), rating))+
+    geom_boxplot()+
+    xlab("Sign of Mean Rating")+
+    ylab("User Rating")+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+as_tibble(bind_rows(mtcars %>% summarise_all(mean), mtcars %>% summarise_all(sd)) %>% t()) %>% rename(Mean = V1, SD = V2) %>% mutate(Var = names(mtcars))
+
+```
+
+

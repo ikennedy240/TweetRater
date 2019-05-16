@@ -60,3 +60,12 @@ likert = list("Very Negative" = -3,
               "Mildly Positive" = 1,
               "Somewhat Postive" = 2,
               "Very Positive" = 3)
+
+update_sample <- function(){
+  tweet_df <-  read_csv(gsub('\\.\\./','',tweet_dir), col_types = cols(.default = 'c'))
+  full_sample <- read_csv('resources/rater_resources/new_sample.csv', col_types = cols(.default = 'c'))
+  bind_rows(full_sample, 
+            inner_join(anti_join(read_csv("tweet_sorter/responses/ian.csv", col_types = cols(.default = 'c')) %>% 
+                                   filter(example == TRUE), full_sample), tweet_df)) %>% 
+    write_csv('resources/rater_resources/new_sample.csv')
+}
