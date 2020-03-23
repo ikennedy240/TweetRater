@@ -20,6 +20,7 @@ library(knitr)
 # which we think might be common anti-black slurs. Once we have a tool for separating out 
 # tweets that aren't about black folks, we could try adding more terms
 term_list <- read_lines('resources/term_list_3')
+term_list
 ```
 
 # Import current full tweet set and add some new tweets
@@ -40,7 +41,7 @@ full_tweet_set <- read_csv('data/tweets/full_tweet_set.csv',
 #mutate(sample_date = ifelse(status_id %in% sub_sample$status_id, '20-07-2018',sample_date)) %>% write_csv('data/tweets/full_tweet_set.csv')
 ```
 
-
+# Collect new Tweets
 ```{r get new tweets}
 # grab n tweets matching each of the terms in our list
 n = 100
@@ -50,6 +51,16 @@ tweet_sample <- search_tweets2(q=term_list, n=n, include_rts = FALSE, lang = "en
 tweet_sample <- tweet_sample %>% 
   mutate(search_term = str_replace(rownames(tweet_sample), '\\..+',''))
 
+```
+
+
+```{r}
+glimpse(tweet_sample)
+```
+
+# Combine with Ratings
+
+```{r}
 # optionally add some user histories
   # load some set of old responses
 old_responses <- read_csv('data/ratings/responses18_07_2018.csv', 

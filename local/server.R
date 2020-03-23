@@ -43,7 +43,8 @@ shinyServer(
     })
     
     # Initialize Start Tweet
-    output$tweet_html = renderText(grab_html(values$round))
+    # output$tweet_html = renderText(grab_html(values$round))
+    output$tweet_html = renderText('TESTING MODE')
     output$tweet_text = renderText(tweet_df$text[[values$round]])
     output$tweet_rating = renderText(tweet_df$rating[[values$round]])
     values$df <- NULL
@@ -128,7 +129,7 @@ shinyServer(
       data <- sapply(fieldsFeedback, function(x) input[[x]])
       data <- c(user = values$user, data)
       data <- t(data)
-      data
+      #data
     })
   }
 )

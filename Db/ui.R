@@ -63,7 +63,7 @@ shinyUI(fluidPage(
            If it was tweeted in reply to another tweet, that tweet may appear about the key tweet. 
            Please rate the bottom tweet only, as in the example below. Make sure you click 'Save Ratings and Exit' to record your responses."),
          actionButton("confirm", label = "Ok, I got it... let's start"),
-         img(src='http://indulgencezine.com/wp-content/uploads/2017/11/tweet-example-with-text.png', class="img-responsive")
+         img(src=b64, class="img-responsive")
          #add instructions vis tweet context
     )
   ),

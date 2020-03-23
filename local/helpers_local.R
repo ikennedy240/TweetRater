@@ -18,6 +18,33 @@ saveData <- function(data, mode = 'normal') {
   }
   write.csv(x = data, file = file.path(responsesDir, fileName),
             row.names = FALSE, quote = TRUE)
+
+  tweet_df <- tweet_df %>% full_join(read.csv(file.path(responsesDir, fileName), row.names=NULL, colClasses = 'character') %>% select(status_id, rating), by = 'status_id')  %>% 
+    mutate(rating_1 = if_else(n_ratings=='0', rating, rating_1),
+           rating_2 = if_else(n_ratings=='1', rating, rating_2),
+           rating_3 = if_else(n_ratings=='2', rating, rating_3),
+           extra_rating_1 = if_else(as.numeric(n_ratings)==3, rating, extra_rating_1),
+           extra_rating_2 = if_else(as.numeric(n_ratings)==4, rating, extra_rating_2),
+           n_ratings = if_else(is.na(rating), n_ratings, as.character(as.numeric(n_ratings)+1)),
+           n_ratings = if_else(n_ratings>=3&sign(as.numeric(rating_1))==sign(as.numeric(rating_2))&sign(as.numeric(rating_2))==sign(as.numeric(rating_3)), 
+                               '10', n_ratings),
+           status = if_else(as.numeric(n_ratings) >= 5, 'complete', status)) %>%
+    select(-rating)
+
+  full_df %>%
+    filter(!(status_id %in% tweet_df$status_id)) %>%
+    bind_rows(tweet_df) %>%
+    inner_join(read.csv(tweet_dir, row.names=NULL, colClasses = 'character') %>%
+                 transmute(alt_status = status, status_id), by = 'status_id') %>%
+    mutate(status = case_when(as.character(n_ratings) >= 5 ~ 'complete',
+                              status == 'complete' | alt_status == 'compelte' ~ 'complete',
+                              status == 'active' ~ 'waiting',
+                              status == 'in progress' & alt_status == 'waiting' ~ 'waiting',
+    status == 'waiting' & alt_status == 'in progress' ~ 'in progress',
+    status == alt_status ~ status
+    )) %>%
+    select(-alt_status) %>%
+    write.csv(file = file.path(tweet_dir), row.names = FALSE, quote = TRUE)
 }
 
 epochTime <- function() {
@@ -34,6 +61,7 @@ grab_html <- function(round){
 
 append_feedback <- function(feedback){
   fbfile <- 'responses/feedback.csv'
+  
   if(file.exists(fbfile)){
     write.table(x = feedback, file = fbfile, sep = ',', append = TRUE, row.names = FALSE, col.names = FALSE)
   }
@@ -63,7 +91,24 @@ db_dir <- file.path("db")
 # from local file
 tweet_dir <- file.path("fake_tweet.csv") 
 completion_code <- digest::digest(tweet_dir)
-tweet_df = read.csv(tweet_dir, row.names=NULL, colClasses = 'character')
+full_df = read.csv(tweet_dir, row.names=NULL, colClasses = 'character')
+# preps raw tweets
+if(!('status' %in% names(full_df))){
+  tweet_df %>%
+    select(user_id, status_id, screen_name, text, starts_with('reply'), is_quote, is_retweet, contains('count'), urls_expanded_url, media_expanded_url, ext_media_expanded_url, status_url, name, location, description, url, protected, account_created_at, contains('profile'), has_keyword, query) %>%
+    mutate(n_ratings = 0, status = 'waiting', rating_average = NA, rating_1 = NA, rating_2 = NA, rating_3 = NA, extra_rating_1 = NA, extra_rating_2 = NA) %>% write_csv('fake_tweet.csv')
+}
+tweet_df <- full_df %>%
+  filter(status == 'waiting') %>% 
+  arrange(desc(n_ratings)) %>% 
+  head(min(100, nrow(full_df %>% filter(status == 'waiting')))) %>% 
+  sample_n(min(20, nrow(full_df %>% filter(status == 'waiting')))) %>% 
+  mutate(status = 'active')
+
+full_df %>% 
+  mutate(status = if_else(status_id %in% tweet_df$status_id, 'in progress', status)) %>% 
+  write.csv(file = file.path(tweet_dir),
+                                                                                                            row.names = FALSE, quote = TRUE)
 
 likert = list("Very Negative" = -3, 
               "Somewhat Negative" = -2,

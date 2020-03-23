@@ -67,4 +67,7 @@ as_tibble(bind_rows(mtcars %>% summarise_all(mean), mtcars %>% summarise_all(sd)
 
 ```
 
+```{r}
+
+```
 
