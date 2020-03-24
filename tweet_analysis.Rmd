@@ -5,6 +5,119 @@ output: html_notebook
 
 
 ```{r load dependencies}
+library(tidyverse)
+library(INLA)
+library(lme4)
+```
+
+
+```{r load and merge data}
+# load the ratings collected on mTurk or in Ian's class, label the source
+rater_ratings <- read_csv('turker_responses/full_ratings_set.csv') %>% filter(screen_name != 'uwsian') %>% add_count(user) %>% mutate(rating_type = if_else(n>35, 'class', 'mturk'))
+
+# load savannah's ratings; she used the index as the tweet id, so move that to the status id for now
+sav_ratings <- read_csv('turker_responses/savtweetratings.csv') %>% mutate(rating_type = 'savannah', user = as.character(user), status_id = as.character(index), index = NA)
+
+# bind rows 
+mixed_ratings <- bind_rows(rater_ratings, sav_ratings)
+```
+
+
+As I recall, we wanted to try a few modeling strategties. Basically, we want to be estimating how different people were from the median rating of the other raters, including covariates like the proportion of other raters who are the same race as the rater, with a hierarchical model with random intercepts for the tweets and users (so a non-nested hierarchical model). With the question being: how well does a user's race predict their difference from the median rating.
+
+Ok, for race operationalization:
+If you put latinx, we'll count you as `latinx`
+If you put two other categories, we'll count you as `mixed_race`
+otherwise, Asian/Pacific Islander will be `asian`, Black/African American will be `black`, Native American/American Indian will be `aindian`, White/Caucasian/European will be `white`. In addition to counding prop_own_race, we'll also count xprop_white_status, which is the proportion who share white racialization or not. I think we need a better name for that. Also, note that in this case 'other' gets rated as non-white while (as I recall from somewhere?) I think that the people who pick 'other' are often white.
+
+So in this step we created the variables we need
+raw_median: median of all ratings for the tweet
+raw_mean: mean of all ratings for the tweet
+xuser_median: median of all ratings except the user's rating
+xuser_mean: mean of all ratings except the user's rating
+collapsed_race: simplified R/E variable
+prop_own_race: proportion of raters on a particular tweet with the same race as the user
+prop_shared_whitestatus: proportion of raters who share the white racialization of the user
+
+
+```{r process the daters}
+# add the means, raw_median, and simple race
+mixed_ratings <- mixed_ratings %>% group_by(status_id) %>% 
+  mutate(raw_median = median(rating),
+         raw_mean = mean(rating),
+         xuser_mean = (sum(rating) - rating)/(n()-1),
+         race = case_when(
+           str_detect(race_ethnicity, 'Latino') ~ 'latinx',
+           str_detect(race_ethnicity, '\\+') ~ 'mixed',
+           str_detect(race_ethnicity, 'Black') ~ 'black',
+           str_detect(race_ethnicity, 'Asian') ~ 'asian',
+           str_detect(race_ethnicity, 'Native') ~ 'aindian',
+           str_detect(race_ethnicity, 'White') ~ 'white',
+           TRUE ~ 'other'
+           ),
+         white = race=='white') %>%
+  ungroup()
+
+xuser_vars <- function(status_id){
+  # df has all the rows for a particular tweet
+  df <- mixed_ratings[mixed_ratings$status_id==status_id,]
+  # for each user, remove that user, then calculate the median
+  xmedian <- map_dbl(df$user, function(user) median(df$rating[df$user != user]))
+  prop_own_race <- map_dbl(df$user, function(user) mean(df$race[df$user != user] == df$race[df$user == user]))
+  prop_shared_whitestatus<- map_dbl(df$user, function(user) mean(df$white[df$user != user] == df$white[df$user == user]))
+  # return the table
+  df['xuser_median'] <- xmedian
+  df['prop_own_race'] <- prop_own_race
+  df['prop_shared_whitestatus'] <- prop_shared_whitestatus
+  df
+}
+
+mixed_ratings <- map_dfr(unique(mixed_ratings$status_id), function(x) xuser_vars(status_id = x))
+
+# test to see that things went well
+mixed_ratings %>% filter(status_id %in% sample(mixed_ratings$status_id, 1)) %>% select(race_ethnicity, race, rating, raw_median, xuser_median, prop_own_race, prop_shared_whitestatus)
 
 ```
+
+## Model Specification
+
+So the basic model should just see... what? 
+
+
+
+
+
+
+```{r run some models}
+model_data <- mixed_ratings %>% mutate(
+  raw_diff_median = raw_median - rating,
+  xdiff_median = xuser_median - rating,
+  abs_xdiff_median = abs(xuser_median - rating),
+  square_xdiff = (xuser_median - rating)^2,
+  race = relevel(factor(race), ref= 'white'),
+  log1p_sq_diff = log1p(square_xdiff),
+  racist = str_detect(valence,"Racist")
+)
+scaled_model_data <- model_data %>% mutate_if(is.numeric, scale)
+# using rating as outcome
+
+m1 <- glm(rating ~ race + prop_shared_whitestatus, data = model_data)
+summary(m1)
+lmer1 <- lmer(rating ~  race +  (prop_shared_whitestatus | user) + (1 | status_id), data = model_data)
+summary(lmer1)
+
+#using 'racist'
+m1 <- glm(racist ~ race + prop_shared_whitestatus, data = model_data, family = binomial())
+summary(m1)
+glmer0 <- glmer(racist ~ (1 | user) +  (1 | status_id), data = scaled_model_data, family = binomial())
+glmer1 <- glmer(racist ~  race +  (1 | user) + (1 | status_id), data = scaled_model_data, family = binomial())
+summary(glmer0)
+
+## Try with INLA
+inla1 <- inla(rating ~ race + f(status_id, model = "iid"),
+  data = model_data, control.predictor = list(compute = TRUE))
+summary(inla1)
+
+```
+
 
